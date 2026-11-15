@@ -323,20 +323,100 @@ function initReveal() {
 
 
 function renderGallery() {
-  const gallery = $("#galleryGrid");
-  if (!gallery) return;
-  gallery.innerHTML = galleryImages
-    .map(
-      (g, i) => `
-      <figure class="gallery-item">
-        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
-        <figcaption class="gallery-caption">${g.cap}</figcaption>
-      </figure>`
-    )
-    .join("");
+  const grid = $("#galleryGrid");
+  if (!grid) return;
+  grid.innerHTML = galleryImages.map((g, i) => `
+    <figure class="gallery-item">
+      <button type="button" class="gallery-press" data-gallery-index="${i}" aria-label="View ${g.cap} full screen">
+        <img src="${g.url}" alt="Illustrative photograph: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
+      </button>
+      <figcaption class="gallery-caption">${g.cap}</figcaption>
+    </figure>`).join("");
 }
 
+let activeGalleryIndex = 0;
+let lastGalleryTrigger = null;
+function galleryFullsize(image) {
+  const link = new URL(image.url);
+  if (link.hostname === "images.unsplash.com") {
+    link.searchParams.set("w", "1400");
+    link.searchParams.set("q", "84");
+    link.searchParams.set("auto", "format");
+  }
+  return link.href;
+}
+function updateLightbox() {
+  const image = galleryImages[activeGalleryIndex];
+  $("#lightboxImage").src = galleryFullsize(image);
+  $("#lightboxImage").alt = "Illustrative photograph: " + image.cap;
+  $("#lightboxCaption").textContent = image.cap;
+  $("#lightboxPosition").textContent = (activeGalleryIndex + 1) + " / " + galleryImages.length;
+}
+function initGalleryLightbox() {
+  const grid = $("#galleryGrid");
+  const dialog = $("#galleryLightbox");
+  if (!grid || !dialog) return;
+  const move = delta => {
+    activeGalleryIndex = (activeGalleryIndex + delta + galleryImages.length) % galleryImages.length;
+    updateLightbox();
+  };
+  grid.addEventListener("click", event => {
+    const trigger = event.target.closest("[data-gallery-index]");
+    if (!trigger) return;
+    activeGalleryIndex = Number(trigger.dataset.galleryIndex);
+    if (!Number.isInteger(activeGalleryIndex) || activeGalleryIndex < 0 || activeGalleryIndex >= galleryImages.length) return;
+    lastGalleryTrigger = trigger;
+    updateLightbox();
+    dialog.showModal();
+    $("#lightboxClose").focus();
+  });
+  $("#lightboxClose").addEventListener("click", () => dialog.close());
+  $("#lightboxNext").addEventListener("click", () => move(1));
+  $("#lightboxPrevious").addEventListener("click", () => move(-1));
+  dialog.addEventListener("keydown", event => {
+    if (event.key === "ArrowRight") { event.preventDefault(); move(1); }
+    if (event.key === "ArrowLeft") { event.preventDefault(); move(-1); }
+  });
+  dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener("close", () => {
+    $("#lightboxImage").removeAttribute("src");
+    lastGalleryTrigger?.focus();
+  });
+}
 
+function initReservationForm() {
+  const form = $("#reservationForm");
+  if (!form) return;
+  const date = $("#visitDate");
+  const now = new Date();
+  const localISODate = [now.getFullYear(), String(now.getMonth() + 1).padStart(2,"0"), String(now.getDate()).padStart(2,"0")].join("-");
+  date.min = localISODate;
+  const fields = [...form.querySelectorAll("input, select")];
+  function validate(field) {
+    const message = field.validity.valid ? "" : field.validationMessage;
+    field.toggleAttribute("aria-invalid", Boolean(message));
+    const error = $("#" + field.id + "Error");
+    if (error) error.textContent = message;
+    return !message;
+  }
+  fields.forEach(field => {
+    field.addEventListener("input", () => { if (field.hasAttribute("aria-invalid")) validate(field); });
+    field.addEventListener("change", () => { if (field.hasAttribute("aria-invalid")) validate(field); });
+  });
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const invalid = fields.filter(field => !validate(field));
+    const status = $("#reservationStatus");
+    if (invalid.length) {
+      status.textContent = "Please correct the highlighted details. No booking request has been sent.";
+      status.className = "form-status warn";
+      invalid[0].focus();
+      return;
+    }
+    status.textContent = "Your details look complete, but this was a local preview check. No reservation was sent or confirmed.";
+    status.className = "form-status ok";
+  });
+}
 document.addEventListener("DOMContentLoaded", () => {
   $("#year").textContent = new Date().getFullYear();
 
