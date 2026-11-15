@@ -54,3 +54,8 @@ test("unapproved customer organizations cannot expose public menus", () => {
   assert.match(menu, /organization: \{ select: \{ active: true \} \}/);
   assert.match(menu, /!restaurant\.organization\.active/);
 });
+
+test("one-location SaaS starts with a single branch entitlement", () => {
+  assert.match(schema, /branchLimit\s+Int\s+@default\(1\)/);
+  assert.match(constraints, /branch_limit_positive CHECK \("branchLimit" > 0\)/);
+});

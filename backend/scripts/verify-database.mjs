@@ -30,6 +30,12 @@ try {
     'SELECT active FROM organizations WHERE id = $1', [oid]
   );
   assert.equal(tenantDefault.rows[0].active, false, "organizations are disabled before approval");
+  const entitlement = await db.query('SELECT "branchLimit" FROM organizations WHERE id = $1', [oid]);
+  assert.equal(entitlement.rows[0].branchLimit, 1, "new customer starts with one branch");
+  await rejectsCode(
+    'UPDATE organizations SET "branchLimit" = 0 WHERE id = $1',
+    [oid], "23514"
+  );
   const rid = randomUUID();
   const otherRid = randomUUID();
   await db.query(

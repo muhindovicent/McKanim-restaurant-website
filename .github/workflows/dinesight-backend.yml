@@ -80,6 +80,8 @@ jobs:
         run: npx prisma migrate deploy
       - name: Verify real PostgreSQL constraints
         run: node scripts/verify-database.mjs
+      - name: Test single-location concurrency and tenant scoping
+        run: node scripts/verify-branch-provisioning.mjs
       - name: Validate running HTTP health and unpublished-menu behavior
         run: |
           set -e
