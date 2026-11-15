@@ -211,6 +211,7 @@ function openCart() {
   drawer.classList.add("open");
   document.body.style.overflow = "hidden";
   $("#cartClose").focus();
+  requestAnimationFrame(() => { if (drawer.classList.contains("open")) $("#cartClose").focus(); });
 }
 
 function closeCart() {
@@ -394,7 +395,8 @@ function initReservationForm() {
   const fields = [...form.querySelectorAll("input, select")];
   function validate(field) {
     const message = field.validity.valid ? "" : field.validationMessage;
-    field.toggleAttribute("aria-invalid", Boolean(message));
+    if (message) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
     const error = $("#" + field.id + "Error");
     if (error) error.textContent = message;
     return !message;
