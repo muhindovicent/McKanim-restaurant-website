@@ -196,7 +196,6 @@ function renderMenu() {
       (m) => `
       <article class="menu-card" data-id="${m.id}">
         <div class="menu-card-img" style="background-image:url('${m.img}')" role="img" aria-label="${m.name}">
-          ${m.badge ? `<span class="menu-badge ${m.best ? "best" : ""}">${m.badge}</span>` : ""}
         </div>
         <div class="menu-card-body">
           <h3>${m.name}</h3>
@@ -212,10 +211,12 @@ function renderMenu() {
 }
 
 function initFilters() {
-  $$("#menuFilters .filter-btn").forEach((btn) => {
+  $("#menuFilters .filter-btn").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.classList.contains("active")));
     btn.addEventListener("click", () => {
-      $$("#menuFilters .filter-btn").forEach((b) => b.classList.remove("active"));
+      $("#menuFilters .filter-btn").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
       btn.classList.add("active");
+      btn.setAttribute("aria-pressed", "true");
       currentFilter = btn.dataset.filter;
       renderMenu();
     });
@@ -277,7 +278,6 @@ function updateCart() {
   if (cart.length === 0) {
     items.innerHTML = `
       <div class="cart-empty">
-        <span class="cart-emoji">🍽️</span>
         <p>Your cart is empty.<br />Add something delicious from the menu!</p>
       </div>`;
     return;
@@ -328,69 +328,16 @@ function closeCart() {
 
 function checkout() {
   if (cart.length === 0) {
-    showToast("Your cart is empty — add something first", "warn");
+    showToast("Your menu preview is empty — add something first", "warn");
     return;
   }
-
-  const orderId = "MK-" + Date.now().toString().slice(-6);
-  $("#modalOrderId").textContent = "Order reference: " + orderId;
   closeCart();
   $("#checkoutModal").classList.add("open");
-  cart = [];
-  updateCart();
+  $("#checkoutModal .modal").focus();
 }
-
-
-function initReservation() {
-  const form = $("#reserveForm");
-  const fields = {
-    resName: { test: (v) => v.trim().length >= 2, msg: "Please enter your name." },
-    resEmail: {
-      test: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-      msg: "Enter a valid email address.",
-    },
-    resDate: { test: (v) => !!v, msg: "Pick a date." },
-    resTime: { test: (v) => !!v, msg: "Pick a time." },
-  };
-
-  const validateField = (id) => {
-    const field = fields[id];
-    const input = $("#" + id);
-    const msgEl = document.querySelector(`.error-msg[data-for="${id}"]`);
-    const valid = field.test(input.value);
-    input.classList.toggle("error", !valid);
-    msgEl.textContent = valid ? "" : field.msg;
-    return valid;
-  };
-
-  Object.keys(fields).forEach((id) => {
-    $("#" + id).addEventListener("input", () => validateField(id));
-  });
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const allValid = Object.keys(fields).every(validateField);
-
-    if (!allValid) {
-      showToast("Please fix the highlighted fields", "warn");
-      return;
-    }
-
-    const date = new Date($("#resDate").value + "T00:00:00");
-    const prettyDate = date.toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    });
-    const name = $("#resName").value.trim().split(" ")[0];
-    const guests = $("#resGuests").value;
-
-    showToast(
-      `Table reserved for ${guests} guest${guests > 1 ? "s" : ""} on ${prettyDate} at ${$("#resTime").value}. See you soon, ${name}!`
-    );
-    form.reset();
-  });
+function closeCheckoutModal() {
+  $("#checkoutModal").classList.remove("open");
+  $("#cartBtn").focus();
 }
 
 function initNav() {
@@ -467,7 +414,7 @@ function renderGallery() {
     .map(
       (g, i) => `
       <div class="gallery-item" data-cap="${g.cap}" style="animation-delay:${i * 40}ms">
-        <img src="${g.url}" alt="${g.cap}" loading="lazy" />
+        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" loading="lazy" decoding="async" />
       </div>`
     )
     .join("");
@@ -483,7 +430,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initFilters();
   bindAddButtons();
   bindCartEvents();
-  initReservation();
   initNav();
   initReveal();
 
@@ -491,18 +437,16 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#cartClose").addEventListener("click", closeCart);
   $("#cartOverlay").addEventListener("click", closeCart);
   $("#checkoutBtn").addEventListener("click", checkout);
-  $("#modalClose").addEventListener("click", () =>
-    $("#checkoutModal").classList.remove("open")
-  );
+  $("#modalClose").addEventListener("click", closeCheckoutModal);
   $("#checkoutModal").addEventListener("click", (e) => {
     if (e.target === $("#checkoutModal"))
-      $("#checkoutModal").classList.remove("open");
+      closeCheckoutModal();
   });
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeCart();
-      $("#checkoutModal").classList.remove("open");
+      closeCheckoutModal();
     }
   });
 
