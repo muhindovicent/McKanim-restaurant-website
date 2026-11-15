@@ -357,12 +357,20 @@ function initReveal() {
 }
 
 
+function galleryImageAtWidth(src, width) {
+  const image = new URL(src);
+  if (image.hostname !== "images.unsplash.com") return src;
+  image.searchParams.set("w", String(width));
+  image.searchParams.set("q", "78");
+  image.searchParams.set("auto", "format");
+  return image.toString();
+}
 function renderGallery() {
   $("#galleryGrid").innerHTML = galleryImages
     .map((g, i) => `
       <figure class="gallery-item">
         <button type="button" class="gallery-open" data-gallery-index="${i}" aria-label="View photograph ${i + 1} of ${galleryImages.length}: ${g.cap}">
-          <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
+          <img src="${galleryImageAtWidth(g.url, 800)}" srcset="${galleryImageAtWidth(g.url, 480)} 480w, ${galleryImageAtWidth(g.url, 800)} 800w, ${galleryImageAtWidth(g.url, 1200)} 1200w" sizes="(max-width: 520px) 92vw, (max-width: 900px) 45vw, 31vw" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
           <span class="gallery-overlay" aria-hidden="true">View photograph <span>↗</span></span>
         </button>
         <figcaption class="gallery-caption">${g.cap}</figcaption>
