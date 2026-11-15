@@ -1,0 +1,229 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  WAITER
+  CHEF
+  CLEANER
+  CASHIER
+}
+
+enum TableStatus {
+  AVAILABLE
+  PENDING_CONFIRMATION
+  IN_SERVICE
+  NEEDS_CLEANING
+  CLEANING
+  OUT_OF_SERVICE
+}
+
+enum SessionStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum VisitStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  EXPIRED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING_CONFIRMATION
+  ACCEPTED
+  PREPARING
+  READY
+  SERVED
+  CANCELLED
+}
+
+model Restaurant {
+  id          String        @id @default(uuid()) @db.Uuid
+  slug        String        @unique @db.VarChar(80)
+  name        String        @db.VarChar(160)
+  currency    String        @default("UGX") @db.Char(3)
+  published   Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  tables      DiningTable[]
+  menuItems   MenuItem[]
+  categories  MenuCategory[]
+  staff       StaffUser[]
+  orders      CustomerOrder[]
+  outbox      OutboxEvent[]
+
+  @@map("restaurants")
+}
+
+model StaffUser {
+  id             String             @id @default(uuid()) @db.Uuid
+  restaurantId   String             @db.Uuid
+  email          String             @db.VarChar(255)
+  name           String             @db.VarChar(120)
+  passwordHash   String             @db.VarChar(255)
+  role           StaffRole
+  active         Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  restaurant     Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  confirmedOrders CustomerOrder[]   @relation("OrderConfirmedBy")
+
+  @@unique([restaurantId, email])
+  @@index([restaurantId, role])
+  @@map("staff_users")
+}
+
+model DiningTable {
+  id             String             @id @default(uuid()) @db.Uuid
+  restaurantId   String             @db.Uuid
+  label          String             @db.VarChar(30)
+  capacity       Int
+  status         TableStatus        @default(AVAILABLE)
+  active         Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  restaurant     Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  qrTokens       TableQrToken[]
+  visits         TableVisit[]
+  sessions       TableSession[]
+
+  @@unique([restaurantId, label])
+  @@index([restaurantId, status])
+  @@map("dining_tables")
+}
+
+model TableQrToken {
+  id          String       @id @default(uuid()) @db.Uuid
+  tableId     String       @db.Uuid
+  tokenHash   String       @unique @db.VarChar(128)
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime     @default(now())
+  table       DiningTable  @relation(fields: [tableId], references: [id], onDelete: Restrict)
+
+  @@index([tableId, revokedAt])
+  @@map("table_qr_tokens")
+}
+
+model TableVisit {
+  id             String           @id @default(uuid()) @db.Uuid
+  tableId        String           @db.Uuid
+  guestTokenHash String           @unique @db.VarChar(128)
+  status         VisitStatus      @default(PENDING_CONFIRMATION)
+  expiresAt      DateTime
+  confirmedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  table          DiningTable      @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  orders         CustomerOrder[]
+
+  @@index([tableId, status])
+  @@map("table_visits")
+}
+
+model TableSession {
+  id          String            @id @default(uuid()) @db.Uuid
+  tableId     String            @db.Uuid
+  status      SessionStatus     @default(ACTIVE)
+  startedAt   DateTime          @default(now())
+  endedAt     DateTime?
+  table       DiningTable       @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  orders      CustomerOrder[]
+
+  @@index([tableId, status])
+  @@map("table_sessions")
+}
+
+model MenuCategory {
+  id          String       @id @default(uuid()) @db.Uuid
+  restaurantId String      @db.Uuid
+  name        String       @db.VarChar(100)
+  sortOrder   Int          @default(0)
+  restaurant  Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  items       MenuItem[]
+
+  @@unique([restaurantId, name])
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id          String       @id @default(uuid()) @db.Uuid
+  restaurantId String      @db.Uuid
+  categoryId  String       @db.Uuid
+  name        String       @db.VarChar(160)
+  description String       @db.VarChar(1200)
+  priceUGX    Int
+  imageUrl    String?      @db.VarChar(2048)
+  available   Boolean      @default(false)
+  published   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  restaurant  Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  category    MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  orderItems  OrderItem[]
+
+  @@index([restaurantId, published, available])
+  @@map("menu_items")
+}
+
+model CustomerOrder {
+  id             String        @id @default(uuid()) @db.Uuid
+  restaurantId   String        @db.Uuid
+  visitId        String        @db.Uuid
+  sessionId      String?       @db.Uuid
+  confirmedById  String?       @db.Uuid
+  status         OrderStatus   @default(PENDING_CONFIRMATION)
+  currency       String        @default("UGX") @db.Char(3)
+  subtotalUGX    Int
+  idempotencyKey String        @db.Uuid
+  requestHash    String        @db.VarChar(128)
+  notes          String?       @db.VarChar(300)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  restaurant     Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  visit          TableVisit    @relation(fields: [visitId], references: [id], onDelete: Restrict)
+  session        TableSession? @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  confirmedBy    StaffUser?    @relation("OrderConfirmedBy", fields: [confirmedById], references: [id], onDelete: Restrict)
+  items          OrderItem[]
+
+  @@unique([visitId, idempotencyKey])
+  @@index([restaurantId, status, createdAt])
+  @@map("customer_orders")
+}
+
+model OrderItem {
+  id             String        @id @default(uuid()) @db.Uuid
+  orderId        String        @db.Uuid
+  menuItemId     String        @db.Uuid
+  nameSnapshot   String        @db.VarChar(160)
+  quantity       Int
+  unitPriceUGX   Int
+  lineTotalUGX   Int
+  order          CustomerOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  menuItem       MenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OutboxEvent {
+  id           String      @id @default(uuid()) @db.Uuid
+  restaurantId String      @db.Uuid
+  aggregateId  String      @db.Uuid
+  eventType    String      @db.VarChar(100)
+  payload      Json
+  attempts     Int         @default(0)
+  createdAt    DateTime    @default(now())
+  dispatchedAt DateTime?
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+
+  @@index([dispatchedAt, createdAt])
+  @@map("outbox_events")
+}
