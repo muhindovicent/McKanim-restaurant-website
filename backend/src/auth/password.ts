@@ -1,12 +1,19 @@
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
 
-const scrypt = promisify(scryptCallback);
 const N = 1 << 17;  // OWASP-recommended memory-hard scrypt baseline
 const R = 8;
 const P = 1;
 const KEY_BYTES = 64;
 const MAXMEM = 256 * 1024 * 1024;
+
+function deriveKey(password: string, salt: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scryptCallback(password, salt, KEY_BYTES, { N, r: R, p: P, maxmem: MAXMEM }, (error, key) => {
+      if (error) reject(error);
+      else resolve(key);
+    });
+  });
+}
 
 export function validateOwnerPassword(password: unknown): asserts password is string {
   if (typeof password !== "string") throw new TypeError("A password is required");
@@ -18,7 +25,7 @@ export function validateOwnerPassword(password: unknown): asserts password is st
 export async function hashOwnerPassword(password: string): Promise<string> {
   validateOwnerPassword(password);
   const salt = randomBytes(32);
-  const key = (await scrypt(password, salt, KEY_BYTES, { N, r: R, p: P, maxmem: MAXMEM })) as Buffer;
+  const key = await deriveKey(password, salt);
   return ["scrypt", String(N), String(R), String(P), salt.toString("base64url"), key.toString("base64url")].join("$");
 }
 
@@ -31,6 +38,6 @@ export async function verifyOwnerPassword(password: string, record: string): Pro
   const salt = Buffer.from(fields[4], "base64url");
   const expected = Buffer.from(fields[5], "base64url");
   if (salt.length !== 32 || expected.length !== KEY_BYTES) return false;
-  const actual = (await scrypt(password, salt, KEY_BYTES, { N, r: R, p: P, maxmem: MAXMEM })) as Buffer;
+  const actual = await deriveKey(password, salt);
   return timingSafeEqual(actual, expected);
 }
