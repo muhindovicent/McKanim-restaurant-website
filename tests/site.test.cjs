@@ -105,3 +105,19 @@ test("prototype cannot claim restaurant owner approval or enable fake transactio
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(contentConfig.menuItems.every(x => typeof x.img === "string" && x.img.startsWith("https://")));
 });
+
+test("all seven primary routes are actual views without scrollspy", () => {
+  const urls = ["/", "/menu", "/about", "/gallery", "/reviews", "/reservations", "/contact"];
+  for (const path of urls) assert.ok(html.includes(`href="${path}"`), "Missing navbar route " + path);
+  assert.equal([...html.matchAll(/data-page="(home|menu|about|gallery|reviews|reserve|contact)"/g)].length, 8);
+  assert.match(js, /history\.pushState/);
+  assert.match(js, /popstate/);
+  assert.doesNotMatch(js, /\/\/ Scrollspy/);
+});
+test("gallery has a real accessible lightbox with controls", () => {
+  assert.match(html, /id="galleryLightbox"/);
+  for (const name of ["lightboxClose", "lightboxPrev", "lightboxNext", "lightboxImage"]) assert.ok(html.includes(`id="${name}"`));
+  assert.match(js, /dialog\.showModal\(\)/);
+  assert.match(js, /ArrowLeft/);
+  assert.match(js, /ArrowRight/);
+});
