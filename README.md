@@ -44,3 +44,17 @@ These tests do not establish production readiness or verify real business data. 
 All sample menu figures use **integer UGX amounts** and display as `UGX 35,000` (never `$35.00` or cents). The numbers are demonstration prices informed by public Kampala restaurant menus, **not a currency conversion and not McKanim's official prices**. The menu is still non-operational.
 
 Before launch, the restaurant owner must provide approved item names, serving sizes, prices, applicable taxes/fees, availability, and currency rules. When DineSight is integrated, prices must come from the backend as integer Uganda shillings and be recalculated server-side; JavaScript-only figures must never determine final customer charges.
+
+## Phase 7 — edit restaurant content separately from application logic
+
+All **sample menu items, UGX prices and gallery image URLs** live in `content/site-content.js`. To change a demo price, edit the `price: 35000` entry for the corresponding dish there. Keep amounts as whole UGX integers and run the quality checks.
+
+The `restaurant` section records which business information has **not yet been verified**. The present site deliberately refuses to enable real online ordering or reservations through this file alone. Do not change the approval flags or `mode` until there is an approved content-release process and a working DineSight backend.
+
+The site uses a regular deferred script rather than fetching JSON, so it can be reviewed offline by opening `index.html` from a downloaded preview ZIP. Images and web fonts still require an internet connection.
+
+### Preview without VS Code
+
+In the Pull Request, open the GitHub Actions **McKanim site quality** workflow for the latest commit. Download the `mckanim-standalone-preview` artifact, extract it, and open `index.html` in your browser. No Git checkout, Live Server or terminal is needed.
+
+For a future public preview URL, deploy a **separate protected staging environment** only after its access, source branch and public visibility are explicitly approved. GitHub Pages does not generally provide public pull-request preview deployments automatically.
