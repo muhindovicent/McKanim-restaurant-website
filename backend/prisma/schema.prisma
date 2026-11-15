@@ -71,6 +71,7 @@ model Restaurant {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   tables      DiningTable[]
+  ownerInvitations OwnerInvitation[]
   menuItems   MenuItem[]
   categories  MenuCategory[]
   staff       StaffUser[]
@@ -79,6 +80,22 @@ model Restaurant {
 
   @@index([organizationId, published])
   @@map("restaurants")
+}
+
+model OwnerInvitation {
+  id           String      @id @default(uuid()) @db.Uuid
+  restaurantId String      @db.Uuid
+  email        String      @db.VarChar(255)
+  tokenHash    String      @unique @db.Char(64)
+  expiresAt    DateTime
+  usedAt       DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+
+  @@index([restaurantId, email])
+  @@index([expiresAt, usedAt])
+  @@map("owner_invitations")
 }
 
 model StaffUser {
