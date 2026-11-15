@@ -62,7 +62,7 @@ const menuItems = [
     price: 4.5,
     cat: "sides",
     badge: "Popular",
-    img: "https://images.unsplash.com/photo-1630384060421-cb20d0e06497?w=500&q=80",
+    img: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=500&q=80",
   },
   {
     id: 8,
