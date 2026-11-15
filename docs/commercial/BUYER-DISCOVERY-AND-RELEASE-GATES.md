@@ -3,12 +3,13 @@
 **Status:** Awaiting the purchasing client's confirmation. McKanim is a product concept with a prospective buyer, not an established restaurant with verified operations. Do not invent operating details.
 
 ## Product model (must decide before scaling architecture)
-- [ ] Single-restaurant commissioned application (one client/one installation)
-- [ ] Reusable DineSight product licensed to multiple restaurant clients
-- [ ] Buyer wants source-code ownership vs hosted subscription with ongoing support
-- [ ] Branding: McKanim demonstration, buyer's restaurant name, or co-branded DineSight
+- [x] **Confirmed:** DineSight owner retains platform IP and will license or subscribe the product to multiple restaurants.
+- [x] **Confirmed architecture:** A tenant Organization owns one or more Restaurant branches; shared API with scoped data.
+- [ ] Decide whether the first buyer uses hosted monthly/annual subscription or a fixed-term license.
+- [ ] Confirm customer branding (McKanim demo vs actual buying restaurant); white-label permissions.
+- [ ] Finalize IP/licensing contract, usage limits, data export, cancellation and support obligations.
 
-**Recommendation:** Deliver a reusable, restaurant-scoped core for one first-customer pilot; avoid prematurely implementing multi-tenant payments and tenant billing.
+**Product strategy:** Reusable commercial SaaS core with a controlled first-customer pilot. Tenant isolation and staff membership are mandatory before any private endpoint ships. Subscription payments are deferred until commercial rules are approved. See `docs/architecture/ADR-001-MULTI-TENANT-SAAS.md` and `docs/commercial/DINESIGHT-LICENSING-MODEL.md`.
 
 ## Operational requirements to obtain from the buyer
 - [ ] Restaurant location, floor plan and approximate number of tables
