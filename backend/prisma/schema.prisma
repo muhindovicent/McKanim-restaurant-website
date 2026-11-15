@@ -38,6 +38,13 @@ enum VisitStatus {
   REJECTED
 }
 
+enum ReservationStatus {
+  PENDING_REVIEW
+  CONFIRMED
+  DECLINED
+  CANCELLED
+}
+
 enum OrderStatus {
   PENDING_CONFIRMATION
   ACCEPTED
@@ -68,6 +75,7 @@ model Restaurant {
   name        String        @db.VarChar(160)
   currency    String        @default("UGX") @db.Char(3)
   published   Boolean       @default(false)
+  reservationRequestsEnabled Boolean @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   tables      DiningTable[]
@@ -76,6 +84,7 @@ model Restaurant {
   categories  MenuCategory[]
   staff       StaffUser[]
   orders      CustomerOrder[]
+  reservationRequests ReservationRequest[]
   outbox      OutboxEvent[]
 
   @@index([organizationId, published])
@@ -204,6 +213,32 @@ model MenuItem {
 
   @@index([restaurantId, published, available])
   @@map("menu_items")
+}
+
+
+model ReservationRequest {
+  id             String            @id @default(uuid()) @db.Uuid
+  restaurantId   String            @db.Uuid
+  idempotencyKey String            @db.Uuid
+  requestHash    String            @db.Char(64)
+  guestName      String            @db.VarChar(120)
+  guestPhone     String            @db.VarChar(20)
+  guestEmail     String?           @db.VarChar(255)
+  requestedFor   DateTime
+  visitDate      String            @db.VarChar(10)
+  visitTime      String            @db.VarChar(5)
+  timeZone       String            @default("Africa/Kampala") @db.VarChar(60)
+  partySize      Int
+  notes          String?           @db.VarChar(500)
+  status         ReservationStatus @default(PENDING_REVIEW)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  restaurant     Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+
+  @@unique([restaurantId, idempotencyKey])
+  @@index([restaurantId, requestedFor, status])
+  @@index([restaurantId, guestPhone, createdAt])
+  @@map("reservation_requests")
 }
 
 model CustomerOrder {
