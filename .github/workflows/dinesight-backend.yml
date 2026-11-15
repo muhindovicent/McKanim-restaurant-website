@@ -1,0 +1,39 @@
+name: DineSight Backend Foundation
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/dinesight-backend.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://dinesight_test:demo_password@127.0.0.1:5432/dinesight_test?schema=public
+      CORS_ORIGINS: http://localhost:5500
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies (temporary; commit a lock file before release)
+        run: npm install --no-audit --no-fund
+      - name: Validate Prisma schema
+        run: npm run db:validate
+      - name: Generate Prisma client and type-check NestJS build
+        run: npm run build
+      - name: Run foundation tests
+        run: npm test
+      - name: Store dependency lockfile for reproducibility review
+        uses: actions/upload-artifact@v4
+        with:
+          name: dinesight-backend-lockfile
+          path: backend/package-lock.json
+          if-no-files-found: error
+          retention-days: 14
