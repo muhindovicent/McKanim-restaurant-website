@@ -58,9 +58,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Package browser-openable concept preview
         run: |
-          mkdir -p site-preview/content
-          cp index.html styles.css script.js favicon.svg site-preview/
-          cp content/site-content.js site-preview/content/
+          bash scripts/build-mckanim-preview.sh
+          mkdir -p site-preview
+          cp -R render-public/. site-preview/
       - name: Upload downloadable preview
         uses: actions/upload-artifact@v4
         with:

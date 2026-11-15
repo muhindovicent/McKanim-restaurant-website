@@ -22,6 +22,20 @@ if (restaurant.mode !== "concept-preview" || restaurant.approvals.onlineOrdering
 }
 
 let cart = [];
+try {
+  const stored = JSON.parse(sessionStorage.getItem("mckanim-preview-cart") || "[]");
+  if (Array.isArray(stored)) {
+    cart = stored.flatMap(row => {
+      const item = menuItems.find(m => m.id === row.id);
+      return item && Number.isSafeInteger(row.qty) && row.qty > 0 && row.qty <= 99
+        ? [{ ...item, qty: row.qty }] : [];
+    });
+  }
+} catch { cart = []; }
+function saveCart() {
+  try { sessionStorage.setItem("mckanim-preview-cart", JSON.stringify(cart.map(({ id, qty }) => ({ id, qty })))); }
+  catch { /* Browsers can disable storage; current-page cart still works. */ }
+}
 let currentFilter = "all";
 
 const $ = (sel) => document.querySelector(sel);
@@ -50,6 +64,7 @@ function showToast(msg, type = "ok") {
 
 function renderMenu() {
   const grid = $("#menuGrid");
+  if (!grid) return;
   const list =
     currentFilter === "all"
       ? menuItems
@@ -95,6 +110,7 @@ function initFilters() {
 
 function bindAddButtons() {
   const grid = $("#menuGrid");
+  if (!grid) return;
   grid.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-add]");
     if (!btn) return;
@@ -116,7 +132,8 @@ function addToCart(item) {
     cart.push({ ...item, qty: 1 });
   }
   updateCart();
-  showToast(`${item.name} added to cart`);
+  saveCart();
+  showToast(`${item.name} added to your preview selection`);
 }
 
 function changeQty(id, delta) {
@@ -127,11 +144,13 @@ function changeQty(id, delta) {
     cart = cart.filter((c) => c.id !== id);
   }
   updateCart();
+  saveCart();
 }
 
 function removeFromCart(id) {
   cart = cart.filter((c) => c.id !== id);
   updateCart();
+  saveCart();
   showToast("Item removed", "warn");
 }
 
@@ -192,6 +211,7 @@ function openCart() {
   drawer.classList.add("open");
   document.body.style.overflow = "hidden";
   $("#cartClose").focus();
+  requestAnimationFrame(() => { if (drawer.classList.contains("open")) $("#cartClose").focus(); });
 }
 
 function closeCart() {
@@ -275,32 +295,20 @@ function initNav() {
   mobileViewport.addEventListener("change", syncMenu);
   syncMenu();
 
-  // Scrollspy
-  const sections = $$("section[id]");
-  const navMap = new Map();
-  navLinks.querySelectorAll("a").forEach((a) => {
-    const id = a.getAttribute("href");
-    if (id.startsWith("#")) navMap.set(id.slice(1), a);
-  });
+  // Each navigation item opens a real HTML document. Native browser history,
+  // reloads and direct links work without JavaScript or scrollspy.
+  navLinks.querySelectorAll('a[aria-current="page"]').forEach(a => a.classList.add("active"));
 
-  const spy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        navLinks.querySelectorAll(".nav-link").forEach((a) => { a.classList.remove("active"); a.removeAttribute("aria-current"); });
-        const link = navMap.get(entry.target.id);
-        if (link) { link.classList.add("active"); link.setAttribute("aria-current", "location"); }
-      });
-    },
-    { rootMargin: "-45% 0px -50% 0px" }
-  );
-
-  sections.forEach((s) => spy.observe(s));
 }
 
 
 function initReveal() {
   const els = $$(".reveal");
+  if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    els.forEach(el => el.classList.add("visible"));
+    return;
+  }
+  document.documentElement.classList.add("motion-ready");
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -317,23 +325,107 @@ function initReveal() {
 
 
 function renderGallery() {
-  $("#galleryGrid").innerHTML = galleryImages
-    .map(
-      (g, i) => `
-      <figure class="gallery-item">
-        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
-        <figcaption class="gallery-caption">${g.cap}</figcaption>
-      </figure>`
-    )
-    .join("");
+  const grid = $("#galleryGrid");
+  if (!grid) return;
+  grid.innerHTML = galleryImages.map((g, i) => `
+    <figure class="gallery-item">
+      <button type="button" class="gallery-press" data-gallery-index="${i}" aria-label="View ${g.cap} full screen">
+        <img src="${g.url}" alt="Illustrative photograph: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
+      </button>
+      <figcaption class="gallery-caption">${g.cap}</figcaption>
+    </figure>`).join("");
 }
 
+let activeGalleryIndex = 0;
+let lastGalleryTrigger = null;
+function galleryFullsize(image) {
+  const link = new URL(image.url);
+  if (link.hostname === "images.unsplash.com") {
+    link.searchParams.set("w", "1400");
+    link.searchParams.set("q", "84");
+    link.searchParams.set("auto", "format");
+  }
+  return link.href;
+}
+function updateLightbox() {
+  const image = galleryImages[activeGalleryIndex];
+  $("#lightboxImage").src = galleryFullsize(image);
+  $("#lightboxImage").alt = "Illustrative photograph: " + image.cap;
+  $("#lightboxCaption").textContent = image.cap;
+  $("#lightboxPosition").textContent = (activeGalleryIndex + 1) + " / " + galleryImages.length;
+}
+function initGalleryLightbox() {
+  const grid = $("#galleryGrid");
+  const dialog = $("#galleryLightbox");
+  if (!grid || !dialog) return;
+  const move = delta => {
+    activeGalleryIndex = (activeGalleryIndex + delta + galleryImages.length) % galleryImages.length;
+    updateLightbox();
+  };
+  grid.addEventListener("click", event => {
+    const trigger = event.target.closest("[data-gallery-index]");
+    if (!trigger) return;
+    activeGalleryIndex = Number(trigger.dataset.galleryIndex);
+    if (!Number.isInteger(activeGalleryIndex) || activeGalleryIndex < 0 || activeGalleryIndex >= galleryImages.length) return;
+    lastGalleryTrigger = trigger;
+    updateLightbox();
+    dialog.showModal();
+    $("#lightboxClose").focus();
+  });
+  $("#lightboxClose").addEventListener("click", () => dialog.close());
+  $("#lightboxNext").addEventListener("click", () => move(1));
+  $("#lightboxPrevious").addEventListener("click", () => move(-1));
+  dialog.addEventListener("keydown", event => {
+    if (event.key === "ArrowRight") { event.preventDefault(); move(1); }
+    if (event.key === "ArrowLeft") { event.preventDefault(); move(-1); }
+  });
+  dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener("close", () => {
+    $("#lightboxImage").removeAttribute("src");
+    lastGalleryTrigger?.focus();
+  });
+}
 
+function initReservationForm() {
+  const form = $("#reservationForm");
+  if (!form) return;
+  const date = $("#visitDate");
+  const now = new Date();
+  const localISODate = [now.getFullYear(), String(now.getMonth() + 1).padStart(2,"0"), String(now.getDate()).padStart(2,"0")].join("-");
+  date.min = localISODate;
+  const fields = [...form.querySelectorAll("input, select")];
+  function validate(field) {
+    const message = field.validity.valid ? "" : field.validationMessage;
+    if (message) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+    const error = $("#" + field.id + "Error");
+    if (error) error.textContent = message;
+    return !message;
+  }
+  fields.forEach(field => {
+    field.addEventListener("input", () => { if (field.hasAttribute("aria-invalid")) validate(field); });
+    field.addEventListener("change", () => { if (field.hasAttribute("aria-invalid")) validate(field); });
+  });
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const invalid = fields.filter(field => !validate(field));
+    const status = $("#reservationStatus");
+    if (invalid.length) {
+      status.textContent = "Please correct the highlighted details. No booking request has been sent.";
+      status.className = "form-status warn";
+      invalid[0].focus();
+      return;
+    }
+    status.textContent = "Your details look complete, but this was a local preview check. No reservation was sent or confirmed.";
+    status.className = "form-status ok";
+  });
+}
 document.addEventListener("DOMContentLoaded", () => {
   $("#year").textContent = new Date().getFullYear();
 
   renderMenu();
   renderGallery();
+  initReveal();
 
   initFilters();
   bindAddButtons();
@@ -360,4 +452,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   updateCart();
+  initGalleryLightbox();
+  initReservationForm();
 });
