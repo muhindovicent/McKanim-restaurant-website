@@ -60,7 +60,7 @@ export class ReservationsService {
       bookingConfirmedAutomatically: false,
       timeZone: "Africa/Kampala",
       message: enabled
-        ? "Requests are reviewed by McKanim staff; a table is not confirmed until they contact you."
+        ? "Requests are reviewed by restaurant staff; a table is not confirmed until they contact you."
         : "Online reservation requests are not yet available. Please do not assume a booking has been made.",
     };
   }
