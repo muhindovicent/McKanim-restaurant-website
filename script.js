@@ -195,7 +195,8 @@ function renderMenu() {
     .map(
       (m) => `
       <article class="menu-card" data-id="${m.id}">
-        <div class="menu-card-img" style="background-image:url('${m.img}')" role="img" aria-label="${m.name}">
+        <div class="menu-card-img">
+          <img src="${m.img}" alt="Illustrative food photography: ${m.name}" width="650" height="500" loading="lazy" decoding="async" />
         </div>
         <div class="menu-card-body">
           <h3>${m.name}</h3>
@@ -287,7 +288,7 @@ function updateCart() {
     .map(
       (c) => `
       <div class="cart-line">
-        <div class="cart-line-img" style="background-image:url('${c.img}')"></div>
+        <img class="cart-line-img" src="${c.img}" alt="" width="64" height="64" loading="lazy" decoding="async" />
         <div class="cart-line-info">
           <h4>${c.name}</h4>
           <div class="price">${money(c.price)}</div>
@@ -297,7 +298,7 @@ function updateCart() {
             <button data-plus="${c.id}" aria-label="Increase quantity">+</button>
           </div>
         </div>
-        <button class="cart-line-remove" data-remove="${c.id}" aria-label="Remove ${c.name}">✕</button>
+        <button class="cart-line-remove" data-remove="${c.id}" aria-label="Remove ${c.name}">&times;</button>
       </div>`
     )
     .join("");
@@ -315,15 +316,23 @@ function bindCartEvents() {
 }
 
 function openCart() {
+  const drawer = $("#cartDrawer");
+  if (drawer.classList.contains("open")) return;
+  drawer.inert = false;
   $("#cartOverlay").classList.add("open");
-  $("#cartDrawer").classList.add("open");
+  drawer.classList.add("open");
   document.body.style.overflow = "hidden";
+  $("#cartClose").focus();
 }
 
 function closeCart() {
+  const drawer = $("#cartDrawer");
+  const wasOpen = drawer.classList.contains("open");
   $("#cartOverlay").classList.remove("open");
-  $("#cartDrawer").classList.remove("open");
+  drawer.classList.remove("open");
+  drawer.inert = true;
   document.body.style.overflow = "";
+  if (wasOpen) $("#cartBtn").focus();
 }
 
 function checkout() {
@@ -332,41 +341,70 @@ function checkout() {
     return;
   }
   closeCart();
-  $("#checkoutModal").classList.add("open");
-  $("#checkoutModal .modal").focus();
+  const dialog = $("#checkoutModal");
+  if (!dialog.open) dialog.showModal();
 }
+
 function closeCheckoutModal() {
-  $("#checkoutModal").classList.remove("open");
-  $("#cartBtn").focus();
+  const dialog = $("#checkoutModal");
+  if (dialog.open) dialog.close();
 }
 
 function initNav() {
   const navbar = $("#navbar");
   const hamburger = $("#hamburger");
   const navLinks = $("#navLinks");
+  const mobileViewport = window.matchMedia("(max-width: 900px)");
 
-  const onScroll = () => {
-    navbar.classList.toggle("scrolled", window.scrollY > 40);
-  };
+  const onScroll = () => navbar.classList.toggle("scrolled", window.scrollY > 40);
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  const toggleMenu = () => {
-    const open = navLinks.classList.toggle("open");
-    hamburger.classList.toggle("open", open);
-    hamburger.setAttribute("aria-expanded", String(open));
-    document.body.style.overflow = open ? "hidden" : "";
-  };
+  function closeMenu(restoreFocus = false) {
+    const wasOpen = navLinks.classList.contains("open");
+    navLinks.classList.remove("open");
+    hamburger.classList.remove("open");
+    hamburger.setAttribute("aria-expanded", "false");
+    navLinks.inert = mobileViewport.matches;
+    document.body.style.overflow = "";
+    if (restoreFocus && wasOpen) hamburger.focus();
+  }
 
-  hamburger.addEventListener("click", toggleMenu);
+  function syncMenu() {
+    if (!mobileViewport.matches) {
+      closeMenu(false);
+      navLinks.inert = false;
+    } else if (!navLinks.classList.contains("open")) {
+      navLinks.inert = true;
+    }
+  }
+
+  hamburger.addEventListener("click", () => {
+    if (navLinks.classList.contains("open")) {
+      closeMenu(true);
+    } else {
+      navLinks.inert = false;
+      navLinks.classList.add("open");
+      hamburger.classList.add("open");
+      hamburger.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+      navLinks.querySelector("a")?.focus();
+    }
+  });
 
   navLinks.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => {
-      navLinks.classList.remove("open");
-      hamburger.classList.remove("open");
-      document.body.style.overflow = "";
-    })
+    a.addEventListener("click", () => closeMenu(false))
   );
+
+  document.addEventListener("pointerdown", (e) => {
+    if (mobileViewport.matches && navLinks.classList.contains("open")
+      && !navbar.contains(e.target)) closeMenu(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && navLinks.classList.contains("open")) closeMenu(true);
+  });
+  mobileViewport.addEventListener("change", syncMenu);
+  syncMenu();
 
   // Scrollspy
   const sections = $$("section[id]");
@@ -380,9 +418,9 @@ function initNav() {
     (entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        navLinks.querySelectorAll(".nav-link").forEach((a) => a.classList.remove("active"));
+        navLinks.querySelectorAll(".nav-link").forEach((a) => { a.classList.remove("active"); a.removeAttribute("aria-current"); });
         const link = navMap.get(entry.target.id);
-        if (link) link.classList.add("active");
+        if (link) { link.classList.add("active"); link.setAttribute("aria-current", "location"); }
       });
     },
     { rootMargin: "-45% 0px -50% 0px" }
@@ -393,7 +431,7 @@ function initNav() {
 
 
 function initReveal() {
-  const els = $$(".reveal");
+  const els = $(".reveal");
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -414,7 +452,7 @@ function renderGallery() {
     .map(
       (g, i) => `
       <div class="gallery-item" data-cap="${g.cap}" style="animation-delay:${i * 40}ms">
-        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" loading="lazy" decoding="async" />
+        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="600" loading="lazy" decoding="async" />
       </div>`
     )
     .join("");
@@ -431,22 +469,23 @@ document.addEventListener("DOMContentLoaded", () => {
   bindAddButtons();
   bindCartEvents();
   initNav();
-  initReveal();
 
   $("#cartBtn").addEventListener("click", openCart);
   $("#cartClose").addEventListener("click", closeCart);
   $("#cartOverlay").addEventListener("click", closeCart);
   $("#checkoutBtn").addEventListener("click", checkout);
   $("#modalClose").addEventListener("click", closeCheckoutModal);
-  $("#checkoutModal").addEventListener("click", (e) => {
-    if (e.target === $("#checkoutModal"))
-      closeCheckoutModal();
-  });
+  $("#checkoutModal").addEventListener("close", () => $("#cartBtn").focus());
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      closeCart();
-      closeCheckoutModal();
+    const drawer = $("#cartDrawer");
+    if (e.key === "Escape" && drawer.classList.contains("open")) closeCart();
+    if (e.key === "Tab" && drawer.classList.contains("open")) {
+      const focusables = [...drawer.querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+      if (focusables.length === 0) return;
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   });
 
