@@ -1759,3 +1759,113 @@ main:focus { outline: none; }
 }
 @media(max-width:900px) { .gallery-grid { columns: 2; column-gap: 15px; } .gallery-grid .gallery-item { margin-bottom: 15px; } }
 @media(max-width:520px) { .gallery-grid { columns: 1; } }
+
+
+/* McKanim cinematic editorial hero — the fallback poster always works.
+   Video is decorative, muted, optional and never required for core content. */
+#home.hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: min(95vh, 920px); color: #fff;
+  background: var(--green-dark);
+}
+.hero-cinema, .hero-cinema-shade {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.hero-cinema { z-index: -2; }
+.hero-cinema-shade {
+  z-index: -1;
+  background: linear-gradient(90deg,rgba(6,17,12,.88) 0%,rgba(7,22,16,.76) 43%,rgba(6,19,13,.53) 100%),
+    linear-gradient(0deg,rgba(5,19,13,.6),transparent 55%);
+}
+.hero-cinema-poster, .hero-cinema-video {
+  position: absolute; width: 100%; height: 100%; inset: 0;
+  object-fit: cover; object-position: center 45%;
+}
+.hero-cinema-poster { filter: saturate(.8) brightness(.75); }
+.hero-cinema-video {
+  opacity: 0; transition: opacity 450ms ease;
+  filter: saturate(.85) brightness(.83);
+}
+.hero.is-film-playing .hero-cinema-video { opacity: 1; }
+#home .hero-inner { position: relative; z-index: 1; }
+#home .hero-title { color: #fff; font-weight: 600; font-size: clamp(44px, 6vw, 82px); max-width: 680px; line-height: 1.11; }
+#home .hero-title em { color: #f0ce84; font-weight: 500; }
+#home .eyebrow { color: #f0ce84; }
+#home .hero-sub { color: #e8ece7; max-width: 510px; font-size: clamp(15px,1.4vw,18px); line-height: 1.9; }
+#home .preview-note { color: #e4e9e1; border-left-color: #e0b968; }
+#home .btn-outline { border-color: rgba(255,255,255,.72); color: white; }
+#home .btn-outline:hover { background: rgba(255,255,255,.14); }
+#home .hero-img { aspect-ratio: 4/4.7; border: 1px solid rgba(255,255,255,.28);
+  box-shadow: 0 24px 85px rgba(0,0,0,.4); }
+#home .hero-promo { right: -15px; bottom: 35px; }
+.hero-film-credit { position: absolute; left: 4%; bottom: 17px; z-index: 2;
+  color: rgba(255,255,255,.72); font-size: 10px; letter-spacing: .04em; }
+.hero-motion-toggle { position: absolute; right: 4%; bottom: 15px; z-index: 3;
+  background: rgba(5,20,13,.66); color: #fff; border: 1px solid rgba(255,255,255,.34);
+  padding: 9px 14px; border-radius: 999px; font-size: 11px;
+  transition: background 180ms ease; }
+.hero-motion-toggle:hover { background: rgba(5,20,13,.9); }
+.hero-motion-toggle[hidden] { display: none !important; }
+
+/* Request-only reservation form. No capacity/availability or payment claims. */
+.reserve { background: linear-gradient(145deg,#f3eee5,#fffaf5 60%,#f0f3ed); }
+.reserve-inner { align-items: start; }
+.reserve-content { padding-top: 18px; }
+.reserve-content .preview-note { margin: 24px 0; }
+.reservation-assurance { display: grid; gap: 18px; margin-top: 30px; }
+.reservation-assurance span { display: flex; align-items: center; gap: 15px; color: #415449; font-size: 14px; }
+.reservation-assurance strong { font: 500 28px var(--font-head); color: var(--gold-ink); }
+.reservation-panel { display: block; padding: clamp(24px,3vw,45px); border-radius: 16px;
+  border: 1px solid rgba(30,65,46,.1); background: #fff;
+  box-shadow: 0 28px 72px rgba(18,48,29,.08); }
+.reservation-panel h2 { font-size: clamp(26px,2.8vw,36px); color: var(--green-dark); margin-bottom: 14px; }
+.reservation-availability { font-size: 13px; line-height: 1.7; color: var(--muted); margin-bottom: 15px; }
+.reservation-form-fields { display: grid; gap: 18px; }
+.reservation-form-fields[hidden], .reservation-receipt[hidden], .reservation-error[hidden] { display: none !important; }
+.reservation-form-fields .form-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px; }
+.reservation-form-fields .form-field { display: grid; gap: 7px; min-width: 0; }
+.reservation-form-fields label { font-size: 12px; font-weight: 600; color: var(--green-dark); }
+.reservation-form-fields :where(input:not([type=checkbox]),select,textarea) {
+  width: 100%; min-width: 0; min-height: 47px; border-radius: 8px; padding: 12px 14px;
+  border: 1px solid #cbd4cb; background: white; font: 400 14px var(--font-body);
+  color: #182b20; transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.reservation-form-fields textarea { min-height: 100px; resize: vertical; }
+.reservation-form-fields :where(input,select,textarea):focus-visible {
+  border-color: var(--green); box-shadow: 0 0 0 3px rgba(27,67,50,.09);
+  outline: 2px solid var(--gold); outline-offset: 2px;
+}
+.reservation-consent { display: flex; align-items: flex-start; gap: 11px; line-height: 1.6; }
+.reservation-consent input { flex: 0 0 18px; margin-top: 3px; width: 18px; height: 18px; accent-color: var(--green); }
+.reservation-consent span { font-weight: 400; color: #4b5d51; }
+.reservation-privacy { color: var(--muted); font-size: 11px; line-height: 1.7; }
+.reservation-error { background: #fff1ee; border-left: 3px solid #ad4232;
+  border-radius: 6px; color: #8a2f23; font-size: 13px; padding: 12px; }
+.reservation-form-fields button:disabled { opacity: .65; cursor: progress; transform: none; }
+.reservation-honey { position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; }
+.reservation-receipt { padding: 16px 0; display: grid; gap: 16px; }
+.reservation-receipt h3 { font-size: 25px; color: var(--green-dark); }
+.reservation-receipt p { line-height: 1.75; color: var(--muted); }
+.reservation-receipt-mark { display: grid; place-items: center; width: 44px; height: 44px;
+  background: var(--green-soft); border-radius: 50%; font-size: 23px; color: var(--green-dark); }
+.reservation-ref { font: 500 12px var(--font-body); overflow-wrap: anywhere; }
+@media(max-width:900px) {
+  #home.hero { min-height: 760px; padding-top: 125px; }
+  #home .hero-title { font-size: clamp(42px,8vw,67px); }
+  #home .hero-img { aspect-ratio: 4/3; }
+  #home .hero-promo { right: 0; }
+}
+@media(max-width:640px) {
+  #home.hero { padding-bottom: 95px; }
+  .hero-film-credit { bottom: 16px; max-width: 57%; line-height: 1.4; }
+  .hero-cinema-shade { background: linear-gradient(180deg,rgba(5,19,12,.83),rgba(5,19,12,.69)); }
+  .reservation-form-fields .form-row { grid-template-columns: minmax(0,1fr); }
+  .reservation-panel { padding: 22px 18px; }
+  #home .hero-promo { max-width: 205px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .hero-cinema-video { display: none !important; }
+  .hero-cinema-poster { filter: saturate(.8) brightness(.75); }
+  .hero-motion-toggle { display: none !important; }
+}
