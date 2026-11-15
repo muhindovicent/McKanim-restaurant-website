@@ -13,6 +13,8 @@
 
 ---
 
+> **Premium navigation revision (November 2026):** The current UI review branch replaces the older one-page, smooth-scrolling navigation described in parts of this v1 specification. Home, Menu, About, Gallery, Reviews, Reservations and Contact are separate static HTML routes, preserving native browser history and direct links. Premium animation specifications and remaining verification gates are in `docs/frontend/PREMIUM-UI-UPGRADE.md`. The existing unverified business data warnings remain valid. This revision does **not** activate customer ordering or real reservations.
+
 ## 1. Research Brief
 
 ### 1.1 What a visitor needs in the first 10 seconds
