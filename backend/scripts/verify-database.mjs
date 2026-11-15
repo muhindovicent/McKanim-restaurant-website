@@ -20,14 +20,34 @@ async function rejectsCode(sql, params, code) {
 
 try {
   await db.query("BEGIN");
-  const rid = randomUUID();
+  const oid = randomUUID();
+  const otherOid = randomUUID();
   await db.query(
-    `INSERT INTO restaurants (id,slug,name,published,"updatedAt") VALUES ($1,$2,$3,false,now())`,
-    [rid, "ci-test", "CI Test Restaurant"]
+    'INSERT INTO organizations (id,slug,name,"updatedAt") VALUES ($1,$2,$3,now()), ($4,$5,$6,now())',
+    [oid, "ci-tenant-one", "Tenant One", otherOid, "ci-tenant-two", "Tenant Two"]
+  );
+  const tenantDefault = await db.query(
+    'SELECT active FROM organizations WHERE id = $1', [oid]
+  );
+  assert.equal(tenantDefault.rows[0].active, false, "organizations are disabled before approval");
+  const rid = randomUUID();
+  const otherRid = randomUUID();
+  await db.query(
+    `INSERT INTO restaurants (id,"organizationId",slug,name,published,"updatedAt")
+     VALUES ($1,$2,$3,$4,false,now()), ($5,$6,$7,$8,false,now())`,
+    [rid, oid, "ci-test", "CI Test Restaurant", otherRid, otherOid, "ci-other", "Other Tenant"]
+  );
+  const firstTenantRestaurants = await db.query(
+    'SELECT id FROM restaurants WHERE "organizationId" = $1', [oid]
+  );
+  assert.deepEqual(firstTenantRestaurants.rows.map(row => row.id), [rid], "tenant filter must not include other organization's restaurant");
+  await rejectsCode(
+    'INSERT INTO restaurants (id,"organizationId",slug,name,"updatedAt") VALUES ($1,$2,$3,$4,now())',
+    [randomUUID(), randomUUID(), "orphan-restaurant", "Missing Tenant"], "23503"
   );
   await rejectsCode(
-    'INSERT INTO restaurants (id,slug,name,currency,"updatedAt") VALUES ($1,$2,$3,$4,now())',
-    [randomUUID(), "other-ci", "Wrong Currency", "USD"], "23514"
+    'INSERT INTO restaurants (id,"organizationId",slug,name,currency,"updatedAt") VALUES ($1,$2,$3,$4,$5,now())',
+    [randomUUID(), oid, "other-ci", "Wrong Currency", "USD"], "23514"
   );
 
   const tid = randomUUID();
@@ -65,7 +85,7 @@ try {
   const unpublished = await db.query('SELECT count(*)::int AS total FROM menu_items WHERE published = true');
   assert.equal(unpublished.rows[0].total, 0, "menu items must be unpublished by default");
   await db.query("ROLLBACK");
-  console.log("PostgreSQL constraints passed: UGX pricing, positive capacity, unique active session and unpublished defaults");
+  console.log("PostgreSQL constraints passed: tenant organization boundary, foreign key ownership, UGX pricing, positive capacity, unique active session and unpublished defaults");
 } catch (error) {
   await db.query("ROLLBACK");
   throw error;
