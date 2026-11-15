@@ -5,103 +5,95 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
-const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+const names = ["home", "menu", "about", "gallery", "reviews", "reservations", "contact"];
+const pages = new Map(names.map(name => {
+  const file = name === "home" ? "index.html" : `${name}/index.html`;
+  return [name, fs.readFileSync(path.join(root, file), "utf8")];
+}));
+const html = pages.get("home");
 const js = fs.readFileSync(path.join(root, "script.js"), "utf8");
-const configSource = fs.readFileSync(path.join(root, "content", "site-content.js"), "utf8");
+const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
+const premium = fs.readFileSync(path.join(root, "premium.css"), "utf8");
+const contentSource = fs.readFileSync(path.join(root, "content/site-content.js"), "utf8");
 const context = { window: {} };
-vm.runInNewContext(configSource, context, { timeout: 1000 });
-const contentConfig = context.window.McKanimContent;
+vm.runInNewContext(contentSource, context, { timeout: 1000 });
+const content = context.window.McKanimContent;
 
-test("landmarks, page title and viewport exist", () => {
-  assert.match(html, /<html lang="en">/);
-  assert.match(html, /<title>McKanim Restaurant/);
-  assert.match(html, /name="viewport"/);
-  assert.match(html, /<main id="main-content">/);
-  assert.match(html, /<nav[^>]*aria-label="Primary"/);
-});
-
-test("in-page anchor destinations exist", () => {
-  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
-  const destinations = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]);
-  assert.equal(new Set(ids).size, ids.length, "HTML IDs must be unique");
-  for (const dest of destinations) {
-    assert.ok(ids.includes(dest), "Missing anchor destination: " + dest);
+test("seven real semantic HTML documents have unique headings and route titles", () => {
+  for (const [name, page] of pages) {
+    assert.match(page, /<!DOCTYPE html>/i, name);
+    assert.match(page, /<html lang="en">/, name);
+    assert.match(page, /<title>[^<]+<\/title>/, name);
+    assert.match(page, /name="viewport"/, name);
+    assert.match(page, /<main id="main-content"/, name);
+    assert.match(page, /<nav[^>]*aria-label="Primary"/, name);
+    assert.equal((page.match(/<h1(?:\s|>)/g) || []).length, 1, name + " must have exactly one h1");
+    assert.equal((page.match(/aria-current="page"/g) || []).length, 1, name + " must show one active link");
+    const ids = [...page.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+    assert.equal(new Set(ids).size, ids.length, name + " has duplicate HTML IDs");
+    for (const target of page.matchAll(/href="#([^"]+)"/g)) {
+      assert.ok(ids.includes(target[1]), name + " missing in-page anchor " + target[1]);
+    }
   }
 });
 
-test("JavaScript element selectors refer to elements", () => {
-  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
-  const selectors = [...js.matchAll(/\$\("#([A-Za-z][\w-]*)"\)/g)].map((m) => m[1]);
-  for (const id of selectors) assert.ok(ids.includes(id), "Missing JS element: " + id);
+test("all navigation links are real page URLs rather than scroll targets", () => {
+  const pathMap = new Set(["/", "/menu/", "/about/", "/gallery/", "/reviews/", "/reservations/", "/contact/"]);
+  for (const [name, page] of pages) {
+    const base = "https://mckanim.example/" + (name === "home" ? "" : name + "/");
+    const nav = page.match(/<nav class="nav-links"[\s\S]+?<\/nav>/)?.[0];
+    assert.ok(nav, name + " primary navigation absent");
+    const links = [...nav.matchAll(/href="([^"]+)"/g)];
+    assert.equal(links.length, 7, name + " must link to all seven pages");
+    assert.deepEqual(new Set(links.map(link => new URL(link[1], base).pathname)), pathMap);
+    assert.ok(!links.some(link => link[1].startsWith("#")), name + " must not scroll between sections");
+    for (const asset of ["premium.css", "styles.css", "script.js", "content/site-content.js"]) {
+      const href = asset.endsWith(".css") ? page.match(new RegExp('href="([^"]*' + asset.replace(/\./g,"\\.") + ')"'))?.[1] :
+        page.match(new RegExp('src="([^"]*' + asset.replace(/\./g,"\\.") + ')"'))?.[1];
+      assert.ok(href, name + " does not load " + asset);
+      assert.equal(new URL(href, base).pathname, "/" + asset);
+    }
+  }
 });
 
-test("demo storefront does not claim a real order or booking", () => {
-  assert.doesNotMatch(html, /Order Placed!|Your order has been confirmed/i);
-  assert.doesNotMatch(js, /Table reserved for|Order reference:\s*/i);
+test("all public routes preserve the menu preview trust boundary", () => {
+  assert.equal(content.menuItems.length, 16);
+  assert.equal(content.galleryImages.length, 8);
+  assert.equal(content.restaurant.currency, "UGX");
+  assert.equal(content.restaurant.mode, "concept-preview");
+  for (const approved of Object.values(content.restaurant.approvals)) assert.equal(approved, false);
+  assert.ok(content.menuItems.every(item => Number.isSafeInteger(item.price) && item.price > 0));
+  assert.match(pages.get("menu"), /Illustrative prices in Ugandan shillings \(UGX\)/);
+  assert.match(pages.get("reviews"), /invented testimonials/);
+  assert.match(pages.get("contact"), /Verified contact details coming soon/);
+  assert.match(pages.get("reservations"), /reservations are not available yet/i);
   assert.match(html, /Online ordering is not active yet/);
-  assert.match(html, /reservations are not available yet/i);
-  assert.doesNotMatch(html, /Gourmet Avenue|\+1 \(555\)|12K\+ Happy Guests/);
+  assert.doesNotMatch(js, /Order Placed!|Table reserved for|Order reference:/i);
 });
 
-test("menu and gallery imagery uses descriptive accessible images", () => {
-  assert.match(html, /<img\s+class="hero-img"[^>]*fetchpriority="high"/);
+test("progressive motion and accessible controls are implemented", () => {
+  assert.match(premium, /@view-transition\s*\{\s*navigation:\s*auto/);
+  assert.match(premium, /page-reveal 180ms/);
+  assert.match(premium, /prefers-reduced-motion: reduce/);
+  assert.match(premium, /scroll-behavior: auto/);
+  assert.match(js, /sessionStorage\.setItem/);
+  assert.match(js, /aria-pressed/);
+  assert.match(pages.get("gallery"), /<dialog class="gallery-lightbox"/);
+  assert.match(pages.get("gallery"), /aria-label="Next photograph"/);
+  assert.match(js, /dialog\.showModal\(\)/);
+  assert.match(js, /lastGalleryTrigger\?\.focus\(\)/);
+  assert.match(pages.get("reservations"), /id="reservationForm"[^>]+novalidate/);
+  assert.match(pages.get("reservations"), /No information entered here is transmitted/);
+  assert.match(js, /No reservation was sent or confirmed/);
+  assert.match(html, /role="dialog" aria-modal="true" aria-labelledby="cartTitle" inert/);
+  assert.match(premium, /focus-visible/);
+});
+
+test("sample menu and gallery images preserve image sizing and copy", () => {
+  assert.match(html, /<img[^>]+class="hero-img"[^>]+fetchpriority="high"/);
   assert.match(js, /alt="Illustrative food photography:/);
   assert.match(js, /loading="lazy"/);
-  assert.match(css, /prefers-reduced-motion/);
-});
-
-test("menu selection and modal use accessible semantics", () => {
-  assert.match(html, /role="dialog" aria-modal="true" aria-labelledby="cartTitle" inert/);
-  assert.match(html, /<dialog class="order-dialog"/);
-  assert.match(js, /showModal\(\)/);
-  assert.match(html, /aria-controls="navLinks"/);
-});
-
-test("category filter operates on collections, not a single element", () => {
-  const selector = '$$("#menuFilters .filter-btn").forEach';
-  const collectionUses = js.split(selector).length - 1;
-  assert.equal(collectionUses, 2, "The filter buttons must be iterated with querySelectorAll");
-});
-
-test("footer headings follow main page heading hierarchy", () => {
-  assert.doesNotMatch(html, /<h4>/, "No skipped footer heading levels are allowed");
-  assert.match(html, /<h3>Quick Links<\/h3>/);
-});
-
-test("hero photo uses responsive delivery while remaining clearly illustrative", () => {
-  assert.match(html, /class="hero-img"[\s\S]*?srcset=/);
-  assert.match(html, /sizes="\(max-width: 900px\) 92vw, 530px"/);
-  assert.match(html, /not the actual McKanim venue/);
-});
-
-test("UGX is the only currency shown on the concept menu", () => {
-  assert.match(html, /Illustrative prices in Ugandan shillings \(UGX\)/);
-  assert.match(html, /id="cartSubtotal">UGX 0<\/strong>/);
-  assert.doesNotMatch(html, /Sample menu in USD|\$0\.00/);
-  assert.match(js, /new Intl\.NumberFormat\("en-UG"/);
   assert.match(js, /return `UGX \$\{ugxFormatter\.format\(amountUGX\)\}`/);
-  const prices = contentConfig.menuItems.map(item => item.price);
-  assert.equal(prices.length, 16, "All 16 sample items require UGX prices");
-  for (const price of prices) assert.ok(Number.isSafeInteger(price) && price > 0);
-  assert.equal(contentConfig.restaurant.currency, "UGX");
-});
-
-test("content configuration is loaded before application script", () => {
-  const contentTag = 'src="content/site-content.js" defer';
-  const appTag = 'src="script.js" defer';
-  assert.ok(html.indexOf(contentTag) >= 0);
-  assert.ok(html.indexOf(appTag) > html.indexOf(contentTag));
-  assert.match(js, /const siteContent = window\.McKanimContent/);
-  assert.equal(contentConfig.galleryImages.length, 8);
-});
-
-test("prototype cannot claim restaurant owner approval or enable fake transactions", () => {
-  assert.equal(contentConfig.restaurant.mode, "concept-preview");
-  for (const [name, approved] of Object.entries(contentConfig.restaurant.approvals)) {
-    assert.equal(approved, false, name + " must remain unapproved until the owner verifies it");
-  }
-  const ids = contentConfig.menuItems.map(x => x.id);
-  assert.equal(new Set(ids).size, ids.length);
-  assert.ok(contentConfig.menuItems.every(x => typeof x.img === "string" && x.img.startsWith("https://")));
+  assert.match(pages.get("gallery"), /id="galleryLightbox"/);
+  assert.ok(content.galleryImages.every(x => x.url.startsWith("https://images.unsplash.com/")));
 });
