@@ -1,5 +1,20 @@
 # Staging DineSight without buying a domain
 
+## Live frontend staging status — 15 November 2026
+
+- **Status:** Render static site created, and the user confirmed the page and UGX menu load in their browser.
+- **Actual frontend URL:** https://mckanim-dinesight-preview.onrender.com
+- **Service ID:** `srv-dbt0487f3r2c73bi5g0g`
+- **Git branch:** `feature/dinesight-staging-configuration`, auto-deploy **off**.
+- **Public access:** Preview is openly accessible to anyone with the link. Robots directives request no indexing but are NOT an access-control mechanism.
+- **DineSight API:** Not yet deployed. No Neon staging database project has been configured through this workflow.
+- **Template:** `backend/.env.staging.example` records the real frontend origin but no passwords.
+- **Security check still outstanding:** independently verify `/backend/package.json` and `/docs/` respond with 404 through the public HTTPS address.
+
+The initial Prisma migration and backend npm lockfile have now been **committed** to the review branch. GitHub Actions is being updated to use `npm ci` and the versioned migration directly. See `backend/prisma/migrations/0_init/migration.sql` and `backend/package-lock.json`. Do not imply they have been run on a durable staging database; only isolated CI PostgreSQL is verified.
+
+
+
 **Decision confirmed:** Use generated HTTPS provider hostnames for the initial McKanim + DineSight pilot. **This document is a deployment runbook, not evidence that hosting or email delivery has been connected.**
 
 ## Hosting account verification — 15 November 2026
