@@ -1,0 +1,1009 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "DineSight — McKanim Pilot Integration Contract",
+    "version": "0.1.0-draft",
+    "description": "DESIGN ONLY. No deployed backend is asserted. The McKanim website currently remains an offline-safe concept preview. All guest orders need waiter confirmation before kitchen release."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Relative API prefix; production API origin selected during deployment."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Public menu"
+    },
+    {
+      "name": "Guest"
+    },
+    {
+      "name": "Staff"
+    }
+  ],
+  "paths": {
+    "/public/restaurants/{restaurantSlug}/menu": {
+      "get": {
+        "tags": [
+          "Public menu"
+        ],
+        "operationId": "getPublicMenu",
+        "summary": "Read the restaurant's approved, server-owned menu",
+        "security": [],
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{2,80}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Live menu and whole-UGX prices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicMenu"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Restaurant not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Menu not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guest/table-access": {
+      "post": {
+        "tags": [
+          "Guest"
+        ],
+        "operationId": "requestTableAccess",
+        "summary": "Register a QR visit request; QR scan alone never confirms presence",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableAccessRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pending visit with short-lived guest token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableAccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token does not grant access to this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid state transition or conflicting idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guest/orders": {
+      "post": {
+        "tags": [
+          "Guest"
+        ],
+        "operationId": "submitGuestOrder",
+        "summary": "Store an order as pending waiter confirmation",
+        "security": [
+          {
+            "GuestBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "UUID v4; reuse with same payload returns same order. Changed payload with same key returns 409.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent replay of the original order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New pending order saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token does not grant access to this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid state transition or conflicting idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guest/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Guest"
+        ],
+        "operationId": "getOwnGuestOrder",
+        "summary": "Get only an order created using this guest access token",
+        "security": [
+          {
+            "GuestBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned guest order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token does not grant access to this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found or not owned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid state transition or conflicting idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/staff/orders/{orderId}/confirm": {
+      "post": {
+        "tags": [
+          "Staff"
+        ],
+        "operationId": "confirmPendingOrder",
+        "summary": "Waiter confirms physical table and approves pending order for kitchen",
+        "security": [
+          {
+            "StaffBearer": []
+          }
+        ],
+        "x-roles": [
+          "WAITER",
+          "MANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token does not grant access to this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid state transition or conflicting idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/staff/kitchen/orders": {
+      "get": {
+        "tags": [
+          "Staff"
+        ],
+        "operationId": "getKitchenQueue",
+        "summary": "Fetch authoritative accepted/preparing/ready kitchen queue on initial load or reconnect",
+        "security": [
+          {
+            "StaffBearer": []
+          }
+        ],
+        "x-roles": [
+          "CHEF",
+          "WAITER",
+          "MANAGER"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current kitchen queue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token does not grant access to this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid state transition or conflicting idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/staff/orders/{orderId}/status": {
+      "patch": {
+        "tags": [
+          "Staff"
+        ],
+        "operationId": "updateOrderStatus",
+        "summary": "Advance an order through server-validated kitchen/service transitions",
+        "security": [
+          {
+            "StaffBearer": []
+          }
+        ],
+        "x-roles": [
+          "CHEF",
+          "WAITER",
+          "MANAGER"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStatusPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token does not grant access to this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid state transition or conflicting idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "GuestBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Short-lived, guest-order-scoped opaque access token. Never staff credential."
+      },
+      "StaffBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Authenticated staff credential with restaurant and role scoping."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "MenuItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "description",
+          "category",
+          "priceUGX",
+          "available"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "priceUGX": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Whole Ugandan shillings. Never a client-submitted price."
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PublicMenu": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "restaurantSlug",
+          "currency",
+          "items",
+          "menuVersion"
+        ],
+        "properties": {
+          "restaurantSlug": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "const": "UGX"
+          },
+          "menuVersion": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuItem"
+            }
+          }
+        }
+      },
+      "TableAccessRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "qrToken"
+        ],
+        "properties": {
+          "qrToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 256,
+            "description": "Opaque table QR token. Public and copyable; requires waiter approval before kitchen release."
+          }
+        }
+      },
+      "TableAccessResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "accessRequestId",
+          "guestAccessToken",
+          "expiresAt",
+          "status",
+          "tableLabel"
+        ],
+        "properties": {
+          "accessRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guestAccessToken": {
+            "type": "string",
+            "description": "Short-lived opaque bearer token; may create pending orders only. Never place into a URL."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "const": "PENDING_CONFIRMATION"
+          },
+          "tableLabel": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderItemRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "menuItemId",
+          "quantity"
+        ],
+        "properties": {
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        }
+      },
+      "SubmitOrderRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 30,
+            "items": {
+              "$ref": "#/components/schemas/OrderItemRequest"
+            }
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 300
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "menuItemId",
+          "nameSnapshot",
+          "unitPriceUGX",
+          "quantity",
+          "lineTotalUGX"
+        ],
+        "properties": {
+          "menuItemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nameSnapshot": {
+            "type": "string"
+          },
+          "unitPriceUGX": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Whole Ugandan shillings. Never a client-submitted price."
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "lineTotalUGX": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Whole Ugandan shillings. Never a client-submitted price."
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "currency",
+          "subtotalUGX",
+          "items",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableLabel": {
+            "type": "string",
+            "description": "Display-only label; not authorization context."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_CONFIRMATION",
+              "ACCEPTED",
+              "PREPARING",
+              "READY",
+              "SERVED",
+              "CANCELLED"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "const": "UGX"
+          },
+          "subtotalUGX": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Whole Ugandan shillings. Never a client-submitted price."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderStatusPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PREPARING",
+              "READY",
+              "SERVED",
+              "CANCELLED"
+            ]
+          }
+        }
+      },
+      "OrderList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "orders"
+        ],
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          }
+        }
+      }
+    }
+  }
+}

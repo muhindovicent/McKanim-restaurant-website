@@ -1,163 +1,25 @@
+const siteContent = window.McKanimContent;
+if (!siteContent || !Array.isArray(siteContent.menuItems) || !Array.isArray(siteContent.galleryImages)) {
+  throw new Error("McKanim content is missing. Load content/site-content.js before script.js.");
+}
+const { restaurant, menuItems, galleryImages } = siteContent;
+if (restaurant.currency !== "UGX") throw new Error("Unsupported restaurant currency.");
+const validCategories = new Set(["signature", "burgers", "grills", "sides", "drinks", "desserts"]);
+const seenMenuIds = new Set();
+for (const item of menuItems) {
+  if (!Number.isSafeInteger(item.id) || seenMenuIds.has(item.id) ||
+      !Number.isSafeInteger(item.price) || item.price <= 0 ||
+      !validCategories.has(item.cat) ||
+      !item.name || !item.desc || !item.img) {
+    throw new Error("Invalid McKanim menu data: item IDs, prices, categories, and copy must be valid.");
+  }
+  seenMenuIds.add(item.id);
+}
 
-const menuItems = [
-  {
-    id: 1,
-    name: "McKanim Signature Burger",
-    desc: "Double beef patty, melted cheddar, house golden sauce & caramelized onions.",
-    price: 14.9,
-    cat: "burgers",
-    badge: "Bestseller",
-    best: true,
-    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
-  },
-  {
-    id: 2,
-    name: "Original Recipe Bucket",
-    desc: "8 pieces of our famous 12-spice crispy chicken, juicy to the bone.",
-    price: 24.9,
-    cat: "signature",
-    badge: "Signature",
-    img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=500&q=80",
-  },
-  {
-    id: 3,
-    name: "Char-Grilled Ribeye",
-    desc: "350g ribeye over open flame, rosemary butter & grilled vegetables.",
-    price: 29.5,
-    cat: "grills",
-    badge: "Chef's Pick",
-    img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=500&q=80",
-  },
-  {
-    id: 4,
-    name: "Zesty Chicken Wrap",
-    desc: "Crispy chicken strips, fresh slaw & smoky chili mayo in a warm tortilla.",
-    price: 9.9,
-    cat: "signature",
-    badge: "Popular",
-    img: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=500&q=80",
-  },
-  {
-    id: 5,
-    name: "Classic Beef Burger",
-    desc: "A timeless favorite with juicy patty, lettuce, tomato & secret sauce.",
-    price: 10.5,
-    cat: "burgers",
-    badge: "",
-    img: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
-  },
-  {
-    id: 6,
-    name: "Grilled Lamb Chops",
-    desc: "Tender lamb chops marinated in herbs, served with mint yogurt dip.",
-    price: 26.0,
-    cat: "grills",
-    badge: "",
-    img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
-  },
-  {
-    id: 7,
-    name: "Golden Seasoned Fries",
-    desc: "Crispy double-fried fries dusted with our signature seasoning.",
-    price: 4.5,
-    cat: "sides",
-    badge: "Popular",
-    img: "https://images.unsplash.com/photo-1630384060421-cb20d0e06497?w=500&q=80",
-  },
-  {
-    id: 8,
-    name: "Smoky BBQ Wings",
-    desc: "8 glazed wings with a sticky, smoky-sweet barbecue finish.",
-    price: 11.9,
-    cat: "sides",
-    badge: "",
-    img: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=500&q=80",
-  },
-  {
-    id: 9,
-    name: "Fresh Garden Salad",
-    desc: "Crisp greens, cherry tomatoes, feta & citrus vinaigrette.",
-    price: 7.5,
-    cat: "sides",
-    badge: "Healthy",
-    img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&q=80",
-  },
-  {
-    id: 10,
-    name: "Homemade Lemonade",
-    desc: "Freshly squeezed lemons, mint & a hint of honey. Ice cold.",
-    price: 3.9,
-    cat: "drinks",
-    badge: "Fresh",
-    img: "https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=500&q=80",
-  },
-  {
-    id: 11,
-    name: "Iced Caramel Latte",
-    desc: "Rich espresso, silky milk & caramel drizzle over ice.",
-    price: 4.9,
-    cat: "drinks",
-    badge: "",
-    img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
-  },
-  {
-    id: 12,
-    name: "Molten Chocolate Lava",
-    desc: "Warm chocolate cake with a gooey molten center & vanilla scoop.",
-    price: 6.9,
-    cat: "desserts",
-    badge: "Must Try",
-    img: "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=500&q=80",
-  },
-  {
-    id: 13,
-    name: "Vanilla Soft Serve",
-    desc: "Silky, creamy hand-spun soft serve with your choice of topping.",
-    price: 3.5,
-    cat: "desserts",
-    badge: "",
-    img: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
-  },
-  {
-    id: 14,
-    name: "Spicy McWrap Combo",
-    desc: "Spicy wrap with golden fries and an ice-cold drink.",
-    price: 13.5,
-    cat: "signature",
-    badge: "Value",
-    img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=500&q=80",
-  },
-  {
-    id: 15,
-    name: "Portobello & Cheese Burger",
-    desc: "Juicy patty topped with roasted portobello and melted swiss.",
-    price: 12.9,
-    cat: "burgers",
-    badge: "New",
-    img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
-  },
-  {
-    id: 16,
-    name: "Mixed Grill Platter",
-    desc: "A generous platter of chicken, beef & lamb with grilled sides.",
-    price: 34.0,
-    cat: "grills",
-    badge: "For Sharing",
-    img: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&q=80",
-  },
-];
-
-const galleryImages = [
-  { url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80", cap: "Char-Grilled Chops" },
-  { url: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80", cap: "Breakfast Plates" },
-  { url: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&q=80", cap: "Flame Grilled Steak" },
-  { url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80", cap: "Fresh Salads" },
-  { url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80", cap: "Signature Burgers" },
-  { url: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=600&q=80", cap: "BBQ Favorites" },
-  { url: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&q=80", cap: "Sweet Treats" },
-  { url: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600&q=80", cap: "Crispy Chicken" },
-];
-
+// This is a static concept, not a real order-taking application.
+if (restaurant.mode !== "concept-preview" || restaurant.approvals.onlineOrdering || restaurant.approvals.reservations) {
+  throw new Error("Real orders and reservations cannot be enabled without a tested backend.");
+}
 
 let cart = [];
 let currentFilter = "all";
@@ -165,8 +27,15 @@ let currentFilter = "all";
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
-function money(n) {
-  return "$" + n.toFixed(2);
+// All prototype prices are integer Uganda shillings, not USD conversions.
+const ugxFormatter = new Intl.NumberFormat("en-UG", {
+  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
+  useGrouping: true,
+});
+
+function money(amountUGX) {
+  return `UGX ${ugxFormatter.format(amountUGX)}`;
 }
 
 function showToast(msg, type = "ok") {
@@ -195,8 +64,8 @@ function renderMenu() {
     .map(
       (m) => `
       <article class="menu-card" data-id="${m.id}">
-        <div class="menu-card-img" style="background-image:url('${m.img}')" role="img" aria-label="${m.name}">
-          ${m.badge ? `<span class="menu-badge ${m.best ? "best" : ""}">${m.badge}</span>` : ""}
+        <div class="menu-card-img">
+          <img src="${m.img}" alt="Illustrative food photography: ${m.name}" width="650" height="500" loading="lazy" decoding="async" />
         </div>
         <div class="menu-card-body">
           <h3>${m.name}</h3>
@@ -213,9 +82,11 @@ function renderMenu() {
 
 function initFilters() {
   $$("#menuFilters .filter-btn").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.classList.contains("active")));
     btn.addEventListener("click", () => {
-      $$("#menuFilters .filter-btn").forEach((b) => b.classList.remove("active"));
+      $$("#menuFilters .filter-btn").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
       btn.classList.add("active");
+      btn.setAttribute("aria-pressed", "true");
       currentFilter = btn.dataset.filter;
       renderMenu();
     });
@@ -277,7 +148,6 @@ function updateCart() {
   if (cart.length === 0) {
     items.innerHTML = `
       <div class="cart-empty">
-        <span class="cart-emoji">🍽️</span>
         <p>Your cart is empty.<br />Add something delicious from the menu!</p>
       </div>`;
     return;
@@ -287,7 +157,7 @@ function updateCart() {
     .map(
       (c) => `
       <div class="cart-line">
-        <div class="cart-line-img" style="background-image:url('${c.img}')"></div>
+        <img class="cart-line-img" src="${c.img}" alt="" width="64" height="64" loading="lazy" decoding="async" />
         <div class="cart-line-info">
           <h4>${c.name}</h4>
           <div class="price">${money(c.price)}</div>
@@ -297,7 +167,7 @@ function updateCart() {
             <button data-plus="${c.id}" aria-label="Increase quantity">+</button>
           </div>
         </div>
-        <button class="cart-line-remove" data-remove="${c.id}" aria-label="Remove ${c.name}">✕</button>
+        <button class="cart-line-remove" data-remove="${c.id}" aria-label="Remove ${c.name}">&times;</button>
       </div>`
     )
     .join("");
@@ -315,111 +185,95 @@ function bindCartEvents() {
 }
 
 function openCart() {
+  const drawer = $("#cartDrawer");
+  if (drawer.classList.contains("open")) return;
+  drawer.inert = false;
   $("#cartOverlay").classList.add("open");
-  $("#cartDrawer").classList.add("open");
+  drawer.classList.add("open");
   document.body.style.overflow = "hidden";
+  $("#cartClose").focus();
 }
 
 function closeCart() {
+  const drawer = $("#cartDrawer");
+  const wasOpen = drawer.classList.contains("open");
   $("#cartOverlay").classList.remove("open");
-  $("#cartDrawer").classList.remove("open");
+  drawer.classList.remove("open");
+  drawer.inert = true;
   document.body.style.overflow = "";
+  if (wasOpen) $("#cartBtn").focus();
 }
 
 function checkout() {
   if (cart.length === 0) {
-    showToast("Your cart is empty — add something first", "warn");
+    showToast("Your menu preview is empty — add something first", "warn");
     return;
   }
-
-  const orderId = "MK-" + Date.now().toString().slice(-6);
-  $("#modalOrderId").textContent = "Order reference: " + orderId;
   closeCart();
-  $("#checkoutModal").classList.add("open");
-  cart = [];
-  updateCart();
+  const dialog = $("#checkoutModal");
+  if (!dialog.open) dialog.showModal();
 }
 
-
-function initReservation() {
-  const form = $("#reserveForm");
-  const fields = {
-    resName: { test: (v) => v.trim().length >= 2, msg: "Please enter your name." },
-    resEmail: {
-      test: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-      msg: "Enter a valid email address.",
-    },
-    resDate: { test: (v) => !!v, msg: "Pick a date." },
-    resTime: { test: (v) => !!v, msg: "Pick a time." },
-  };
-
-  const validateField = (id) => {
-    const field = fields[id];
-    const input = $("#" + id);
-    const msgEl = document.querySelector(`.error-msg[data-for="${id}"]`);
-    const valid = field.test(input.value);
-    input.classList.toggle("error", !valid);
-    msgEl.textContent = valid ? "" : field.msg;
-    return valid;
-  };
-
-  Object.keys(fields).forEach((id) => {
-    $("#" + id).addEventListener("input", () => validateField(id));
-  });
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const allValid = Object.keys(fields).every(validateField);
-
-    if (!allValid) {
-      showToast("Please fix the highlighted fields", "warn");
-      return;
-    }
-
-    const date = new Date($("#resDate").value + "T00:00:00");
-    const prettyDate = date.toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    });
-    const name = $("#resName").value.trim().split(" ")[0];
-    const guests = $("#resGuests").value;
-
-    showToast(
-      `Table reserved for ${guests} guest${guests > 1 ? "s" : ""} on ${prettyDate} at ${$("#resTime").value}. See you soon, ${name}!`
-    );
-    form.reset();
-  });
+function closeCheckoutModal() {
+  const dialog = $("#checkoutModal");
+  if (dialog.open) dialog.close();
 }
 
 function initNav() {
   const navbar = $("#navbar");
   const hamburger = $("#hamburger");
   const navLinks = $("#navLinks");
+  const mobileViewport = window.matchMedia("(max-width: 900px)");
 
-  const onScroll = () => {
-    navbar.classList.toggle("scrolled", window.scrollY > 40);
-  };
+  const onScroll = () => navbar.classList.toggle("scrolled", window.scrollY > 40);
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  const toggleMenu = () => {
-    const open = navLinks.classList.toggle("open");
-    hamburger.classList.toggle("open", open);
-    hamburger.setAttribute("aria-expanded", String(open));
-    document.body.style.overflow = open ? "hidden" : "";
-  };
+  function closeMenu(restoreFocus = false) {
+    const wasOpen = navLinks.classList.contains("open");
+    navLinks.classList.remove("open");
+    hamburger.classList.remove("open");
+    hamburger.setAttribute("aria-expanded", "false");
+    navLinks.inert = mobileViewport.matches;
+    document.body.style.overflow = "";
+    if (restoreFocus && wasOpen) hamburger.focus();
+  }
 
-  hamburger.addEventListener("click", toggleMenu);
+  function syncMenu() {
+    if (!mobileViewport.matches) {
+      closeMenu(false);
+      navLinks.inert = false;
+    } else if (!navLinks.classList.contains("open")) {
+      navLinks.inert = true;
+    }
+  }
+
+  hamburger.addEventListener("click", () => {
+    if (navLinks.classList.contains("open")) {
+      closeMenu(true);
+    } else {
+      navLinks.inert = false;
+      navLinks.classList.add("open");
+      hamburger.classList.add("open");
+      hamburger.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+      navLinks.querySelector("a")?.focus();
+    }
+  });
 
   navLinks.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => {
-      navLinks.classList.remove("open");
-      hamburger.classList.remove("open");
-      document.body.style.overflow = "";
-    })
+    a.addEventListener("click", () => closeMenu(false))
   );
+
+  document.addEventListener("pointerdown", (e) => {
+    if (mobileViewport.matches && navLinks.classList.contains("open")
+      && !navbar.contains(e.target)) closeMenu(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && navLinks.classList.contains("open")) closeMenu(true);
+  });
+  mobileViewport.addEventListener("change", syncMenu);
+  syncMenu();
 
   // Scrollspy
   const sections = $$("section[id]");
@@ -433,9 +287,9 @@ function initNav() {
     (entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        navLinks.querySelectorAll(".nav-link").forEach((a) => a.classList.remove("active"));
+        navLinks.querySelectorAll(".nav-link").forEach((a) => { a.classList.remove("active"); a.removeAttribute("aria-current"); });
         const link = navMap.get(entry.target.id);
-        if (link) link.classList.add("active");
+        if (link) { link.classList.add("active"); link.setAttribute("aria-current", "location"); }
       });
     },
     { rootMargin: "-45% 0px -50% 0px" }
@@ -466,9 +320,10 @@ function renderGallery() {
   $("#galleryGrid").innerHTML = galleryImages
     .map(
       (g, i) => `
-      <div class="gallery-item" data-cap="${g.cap}" style="animation-delay:${i * 40}ms">
-        <img src="${g.url}" alt="${g.cap}" loading="lazy" />
-      </div>`
+      <figure class="gallery-item">
+        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
+        <figcaption class="gallery-caption">${g.cap}</figcaption>
+      </figure>`
     )
     .join("");
 }
@@ -483,26 +338,24 @@ document.addEventListener("DOMContentLoaded", () => {
   initFilters();
   bindAddButtons();
   bindCartEvents();
-  initReservation();
   initNav();
-  initReveal();
 
   $("#cartBtn").addEventListener("click", openCart);
   $("#cartClose").addEventListener("click", closeCart);
   $("#cartOverlay").addEventListener("click", closeCart);
   $("#checkoutBtn").addEventListener("click", checkout);
-  $("#modalClose").addEventListener("click", () =>
-    $("#checkoutModal").classList.remove("open")
-  );
-  $("#checkoutModal").addEventListener("click", (e) => {
-    if (e.target === $("#checkoutModal"))
-      $("#checkoutModal").classList.remove("open");
-  });
+  $("#modalClose").addEventListener("click", closeCheckoutModal);
+  $("#checkoutModal").addEventListener("close", () => $("#cartBtn").focus());
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      closeCart();
-      $("#checkoutModal").classList.remove("open");
+    const drawer = $("#cartDrawer");
+    if (e.key === "Escape" && drawer.classList.contains("open")) closeCart();
+    if (e.key === "Tab" && drawer.classList.contains("open")) {
+      const focusables = [...drawer.querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+      if (focusables.length === 0) return;
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   });
 

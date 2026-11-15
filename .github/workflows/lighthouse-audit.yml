@@ -1,0 +1,26 @@
+name: McKanim Lighthouse baseline
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.16.x
+      - name: Run informational Lighthouse baseline
+        run: lhci autorun --config=lighthouserc.cjs
+      - name: Upload performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mckanim-lighthouse-baseline
+          path: lighthouse-results/
+          if-no-files-found: ignore
+          retention-days: 14
