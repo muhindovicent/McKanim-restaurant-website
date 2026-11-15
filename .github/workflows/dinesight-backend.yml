@@ -105,6 +105,8 @@ jobs:
           node scripts/verify-mckanim-pilot.mjs
       - name: Verify secure owner invitations using synthetic email
         run: node scripts/verify-owner-invitations.mjs
+      - name: Verify tenant-scoped reservation requests against PostgreSQL
+        run: node scripts/verify-reservations.mjs
       - name: Validate running HTTP health and unpublished-menu behavior
         run: |
           set -e

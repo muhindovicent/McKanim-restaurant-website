@@ -7,6 +7,7 @@ type DatabaseReadiness = {
   restaurants: string | null;
   menuItems: string | null;
   ownerInvitations: string | null;
+  reservations: string | null;
 };
 
 @Controller("health")
@@ -34,12 +35,13 @@ export class HealthController {
           to_regclass('public.organizations')::text AS organizations,
           to_regclass('public.restaurants')::text AS restaurants,
           to_regclass('public.menu_items')::text AS "menuItems",
-          to_regclass('public.owner_invitations')::text AS "ownerInvitations"
+          to_regclass('public.owner_invitations')::text AS "ownerInvitations",
+          to_regclass('public.reservation_requests')::text AS reservations
       `;
       const state = result[0];
       if (!state || state.installedMigrations < 1n ||
           !state.organizations || !state.restaurants ||
-          !state.menuItems || !state.ownerInvitations) {
+          !state.menuItems || !state.ownerInvitations || !state.reservations) {
         throw new Error("Required DineSight schema is not installed");
       }
       return { status: "ready" };

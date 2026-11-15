@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 test.beforeEach(async ({ page }) => {
-  await page.route(/^https:\/\/(images\.unsplash\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//, route => route.abort());
+  await page.route(/^https:\/\/(images\.unsplash\.com|fonts\.googleapis\.com|fonts\.gstatic\.com|videos\.pexels\.com)\//, route => route.abort());
   await page.goto("/");
 });
 
@@ -156,7 +156,7 @@ test("no fake reviews or booking confirmations are presented", async ({ page }) 
   await page.goto("/reviews");
   await expect(page.getByText(/do not invent testimonials/i)).toBeVisible();
   await page.goto("/reservations");
-  await expect(page.getByText(/Online reservations are not available yet/i)).toBeVisible();
+  await expect(page.getByText(/Confirmed reservations require direct staff approval/i)).toBeVisible();
 });
 
 test("downloadable preview remains navigable from a local HTML file", async ({ page }) => {
@@ -166,4 +166,76 @@ test("downloadable preview remains navigable from a local HTML file", async ({ p
   await expect(page.locator("#menu")).toBeVisible();
   await expect(page.locator(".menu-card")).toHaveCount(16);
   await expect(page.locator("#cartSubtotal")).toHaveText("UGX 0");
+});
+
+const reservationConfigUrl = "https://dinesight-api-staging.onrender.com/api/v1/public/restaurants/mckanim/reservation-requests/config";
+const reservationPostUrl = "https://dinesight-api-staging.onrender.com/api/v1/public/restaurants/mckanim/reservation-requests";
+const reservationHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type"};
+
+async function setReservationAvailability(page, available) {
+  await page.route(reservationConfigUrl, route => route.fulfill({
+    status:200,headers:reservationHeaders,contentType:"application/json",
+    body:JSON.stringify({acceptingRequests:available,bookingConfirmedAutomatically:false}),
+  }));
+}
+async function fillReservation(page) {
+  await page.locator("#reservationName").fill("Test Guest");
+  await page.locator("#reservationPhone").fill("+256 700 111 222");
+  const date = new Date(Date.now()+3*86400000+3*3600000).toISOString().slice(0,10);
+  await page.locator("#reservationDate").fill(date);
+  await page.locator("#reservationTime").fill("18:30");
+  await page.locator("#reservationParty").selectOption("2");
+  await page.locator("#reservationConsent").check();
+}
+
+test("reservation requests remain unavailable unless the restaurant approves them", async ({page}) => {
+  await setReservationAvailability(page,false);
+  await page.goto("/reservations");
+  await expect(page.locator("#reservationForm")).toBeHidden();
+  await expect(page.locator("#reservationAvailability")).toContainText("not active yet");
+});
+
+test("server-accepted reservation requests show pending review, not confirmed", async ({page}) => {
+  await setReservationAvailability(page,true);
+  let submits=0;
+  await page.route(reservationPostUrl,route=>{
+    if(route.request().method()==="OPTIONS")return route.fulfill({status:204,headers:reservationHeaders});
+    const body=route.request().postDataJSON();
+    expect(body.guestName).toBe("Test Guest");
+    expect(body.partySize).toBe(2);
+    expect(body.idempotencyKey).toMatch(/^[a-f0-9-]{36}$/);
+    submits++;
+    return route.fulfill({status:202,headers:reservationHeaders,contentType:"application/json",
+      body:JSON.stringify({reference:"550e8400-e29b-41d4-a716-446655440000",status:"PENDING_REVIEW",confirmed:false})});
+  });
+  await page.goto("/reservations");
+  await expect(page.locator("#reservationForm")).toBeVisible();
+  await fillReservation(page);
+  await page.locator("#reservationSubmit").click();
+  await expect(page.locator("#reservationReceipt")).toBeVisible();
+  await expect(page.locator("#reservationReceipt")).toContainText("Pending review");
+  await expect(page.locator("#reservationReceipt")).toContainText("not confirmed");
+  expect(submits).toBe(1);
+});
+
+test("booking API failures never create an invented success", async ({page}) => {
+  await setReservationAvailability(page,true);
+  await page.route(reservationPostUrl,route=>{
+    if(route.request().method()==="OPTIONS")return route.fulfill({status:204,headers:reservationHeaders});
+    return route.fulfill({status:503,headers:reservationHeaders,contentType:"application/json",body:'{"message":"Unavailable"}'});
+  });
+  await page.goto("/reservations");
+  await fillReservation(page);
+  await page.locator("#reservationSubmit").click();
+  await expect(page.locator("#reservationError")).toBeVisible();
+  await expect(page.locator("#reservationReceipt")).toBeHidden();
+  await expect(page.locator("#reservationSubmit")).toBeEnabled();
+});
+
+test("cinematic film has a static fallback for reduced-motion visitors",async({page})=>{
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await page.goto("/");
+  await expect(page.locator("#heroMotionToggle")).toBeHidden();
+  await expect(page.locator(".hero-cinema-poster")).toBeVisible();
+  await expect(page.locator("#heroCinemaVideo")).not.toBeVisible();
 });

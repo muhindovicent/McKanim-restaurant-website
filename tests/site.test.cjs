@@ -40,7 +40,7 @@ test("demo storefront does not claim a real order or booking", () => {
   assert.doesNotMatch(html, /Order Placed!|Your order has been confirmed/i);
   assert.doesNotMatch(js, /Table reserved for|Order reference:\s*/i);
   assert.match(html, /Online ordering is not active yet/);
-  assert.match(html, /reservations are not available yet/i);
+  assert.match(html, /Confirmed reservations require direct staff approval/i);
   assert.doesNotMatch(html, /Gourmet Avenue|\+1 \(555\)|12K\+ Happy Guests/);
 });
 
