@@ -77,3 +77,17 @@ test("create visual review screenshot", async ({ page }, testInfo) => {
   fs.mkdirSync("screenshots", { recursive: true });
   await page.screenshot({ path: "screenshots/" + testInfo.project.name + ".png", fullPage: true, timeout: 20000 });
 });
+
+test("all menu and cart price labels use UGX consistently", async ({ page }) => {
+  const menuPrices = await page.locator(".menu-price").allTextContents();
+  expect(menuPrices.length).toBe(16);
+  for (const price of menuPrices) {
+    expect(price).toMatch(/^UGX [0-9]{1,3}(?:,[0-9]{3})*$/);
+  }
+  await expect(page.locator(".menu-card").first().locator(".menu-price")).toHaveText("UGX 35,000");
+  await page.locator(".menu-card .add-btn").first().click();
+  await page.locator("#cartBtn").click();
+  await expect(page.locator("#cartSubtotal")).toHaveText("UGX 35,000");
+  await page.locator('[data-plus="1"]').click();
+  await expect(page.locator("#cartSubtotal")).toHaveText("UGX 70,000");
+});
