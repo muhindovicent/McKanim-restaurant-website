@@ -134,7 +134,15 @@ test("capture desktop/mobile visual references", async ({ page }, testInfo) => {
   fs.mkdirSync("screenshots", { recursive: true });
   for (const target of ["/", "/menu/", "/gallery/"]) {
     await page.goto(target, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(700);
+    // Scroll to load images that intentionally defer downloading until visible.
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    const step = Math.max(480, Math.round((await page.evaluate(() => innerHeight)) * .8));
+    for (let y = 0; y < height; y += step) {
+      await page.evaluate(pos => scrollTo(0, pos), y);
+      await page.waitForTimeout(75);
+    }
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(950);
     const name = target === "/" ? "home" : target.split("/")[1];
     await page.screenshot({ path: `screenshots/${testInfo.project.name}-${name}.png`, fullPage: true, timeout: 20000 });
   }
