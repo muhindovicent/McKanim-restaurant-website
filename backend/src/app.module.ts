@@ -5,6 +5,7 @@ import { PrismaModule } from "./prisma/prisma.module.js";
 import { PublicMenuModule } from "./menu/public-menu.module.js";
 import { HealthController } from "./health/health.controller.js";
 import { OnboardingModule } from "./onboarding/onboarding.module.js";
+import { ReservationsModule } from "./reservations/reservations.module.js";
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { OnboardingModule } from "./onboarding/onboarding.module.js";
     PrismaModule,
     PublicMenuModule,
     OnboardingModule,
+    ReservationsModule,
   ],
   controllers: [HealthController],
 })
