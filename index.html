@@ -62,23 +62,31 @@
 
     <main id="main-content" tabindex="-1">
     <section class="hero" id="home" data-page="home" aria-labelledby="homeTitle">
+      <div class="hero-cinema" aria-hidden="true">
+        <img class="hero-cinema-poster"
+             src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1600&amp;q=77"
+             alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
+        <video class="hero-cinema-video" id="heroCinemaVideo" muted loop playsinline preload="none"
+               poster="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1600&amp;q=77"
+               data-src="https://videos.pexels.com/video-files/6353432/6353432-hd_720_1280_60fps.mp4"></video>
+      </div>
+      <div class="hero-cinema-shade" aria-hidden="true"></div>
       <div class="container hero-inner">
         <div class="hero-content reveal">
-          <span class="eyebrow">Welcome to McKanim</span>
+          <span class="eyebrow">McKanim · A dining experience in the making</span>
           <h1 class="hero-title" id="homeTitle">
-            Great food,<br />
-            <em>honest recipes,</em><br />
-            unforgettable taste.
+            Where every plate<br />
+            <em>begins a story.</em>
           </h1>
           <p class="hero-sub">
-            A place for generous flavor and good company. Explore the McKanim
-            dining concept through our sample menu and visual story.
+            An invitation to generous flavours, thoughtful presentation,
+            and the moments that bring people around the table.
           </p>
           <div class="hero-cta">
             <a href="/menu" class="btn btn-primary" data-route="menu">Explore the Menu</a>
-            <a href="/reservations" class="btn btn-outline" data-route="reserve">Reservation Information</a>
+            <a href="/reservations" class="btn btn-outline" data-route="reserve">Plan a Visit</a>
           </div>
-          <p class="preview-note">Concept website · Online ordering and reservations are not yet active.</p>
+          <p class="preview-note">An illustrative concept, not the actual venue. Online orders and confirmed bookings are not active.</p>
         </div>
         <div class="hero-visual reveal">
           <img
@@ -95,9 +103,11 @@
           </div>
         </div>
       </div>
+      <button type="button" class="hero-motion-toggle" id="heroMotionToggle"
+              aria-label="Pause background film" aria-pressed="false" hidden>Pause film</button>
+      <span class="hero-film-credit">Illustrative culinary film · not filmed at McKanim</span>
     </section>
 
-  
     <section class="strip" data-page="home" aria-label="Discover McKanim">
       <div class="container strip-inner">
         <div class="strip-item"><p><strong>Explore the Menu</strong><small>Sample dishes and pricing</small></p></div>
@@ -184,14 +194,94 @@
     <section class="section reserve" id="reserve" data-page="reserve" aria-labelledby="reserveTitle" hidden>
       <div class="container reserve-inner">
         <div class="reserve-content reveal">
-          <span class="eyebrow">Reservations</span>
-          <h1 id="reserveTitle">Plan your visit</h1>
-          <p>Online reservations are not available yet. This preview does not take or confirm bookings.</p>
+          <span class="eyebrow">Your table · Your moment</span>
+          <h1 id="reserveTitle">A table for the occasion.</h1>
+          <p>Tell us when you would like to visit. Once reservation requests are enabled,
+            our team will review each request and contact you. Submitting does not reserve a table.</p>
+          <p class="preview-note">Reservations are not available yet in this concept preview.
+            Opening hours and table capacity are awaiting confirmation from the restaurant.</p>
+          <div class="reservation-assurance">
+            <span><strong>01</strong> Send your request</span>
+            <span><strong>02</strong> Staff review it</span>
+            <span><strong>03</strong> Receive confirmation directly</span>
+          </div>
         </div>
-        <div class="reserve-form reserve-notice reveal">
-          <h3>Reservations opening soon</h3>
-          <p>Verified booking contact details and an operational reservation service will be added before launch.</p>
-          <a href="/contact" class="btn btn-primary" data-route="contact">Restaurant information</a>
+        <div class="reserve-form reservation-panel reveal">
+          <span class="eyebrow">Reservation requests</span>
+          <h2>Request a table</h2>
+          <p id="reservationAvailability" class="reservation-availability" role="status" aria-live="polite">
+            Checking whether online reservation requests are available…
+          </p>
+          <form id="reservationForm" class="reservation-form-fields" hidden novalidate>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="reservationName">Your name <span aria-hidden="true">*</span></label>
+                <input id="reservationName" name="guestName" autocomplete="name" required
+                       minlength="2" maxlength="120" placeholder="Full name" />
+              </div>
+              <div class="form-field">
+                <label for="reservationPhone">Phone <span aria-hidden="true">*</span></label>
+                <input id="reservationPhone" name="guestPhone" type="tel" autocomplete="tel" required
+                       placeholder="+256 7XX XXX XXX" maxlength="24" />
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="reservationEmail">Email (optional)</label>
+              <input id="reservationEmail" name="guestEmail" type="email" autocomplete="email" maxlength="255" />
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="reservationDate">Preferred date <span aria-hidden="true">*</span></label>
+                <input id="reservationDate" name="visitDate" type="date" required />
+              </div>
+              <div class="form-field">
+                <label for="reservationTime">Preferred time (EAT) <span aria-hidden="true">*</span></label>
+                <input id="reservationTime" name="visitTime" type="time" required />
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="reservationParty">Number of guests <span aria-hidden="true">*</span></label>
+              <select id="reservationParty" name="partySize" required>
+                <option value="">Select party size</option>
+                <option value="1">1 guest</option>
+                <option value="2">2 guests</option>
+                <option value="3">3 guests</option>
+                <option value="4">4 guests</option>
+                <option value="5">5 guests</option>
+                <option value="6">6 guests</option>
+                <option value="7">7 guests</option>
+                <option value="8">8 guests</option>
+                <option value="9">9 guests</option>
+                <option value="10">10 guests</option>
+                <option value="11">11 guests</option>
+                <option value="12">12 guests</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="reservationNotes">Occasion or special requests (optional)</label>
+              <textarea id="reservationNotes" name="notes" rows="3" maxlength="500"
+                placeholder="Share any details that may help our team"></textarea>
+            </div>
+            <div class="reservation-honey" aria-hidden="true">
+              <label for="reservationWebsite">Website</label>
+              <input id="reservationWebsite" name="website" tabindex="-1" autocomplete="off" />
+            </div>
+            <label class="reservation-consent">
+              <input type="checkbox" id="reservationConsent" required />
+              <span>I agree to be contacted about this request. This is not a confirmed booking.</span>
+            </label>
+            <p id="reservationError" class="reservation-error" role="alert" hidden></p>
+            <button type="submit" id="reservationSubmit" class="btn btn-primary btn-block">Send reservation request</button>
+            <p class="reservation-privacy">Details are used to review your request. Do not include sensitive personal information.</p>
+          </form>
+          <div id="reservationReceipt" class="reservation-receipt" role="status" aria-live="polite" hidden>
+            <span class="reservation-receipt-mark" aria-hidden="true">✓</span>
+            <h3>Request received · Pending review</h3>
+            <p>Your request was recorded, but <strong>your table is not confirmed.</strong>
+               Restaurant staff must contact you before you should rely on this booking.</p>
+            <p class="reservation-ref" id="reservationReference"></p>
+            <button type="button" class="btn btn-outline" id="reservationAnother">Start another request</button>
+          </div>
         </div>
       </div>
     </section>
