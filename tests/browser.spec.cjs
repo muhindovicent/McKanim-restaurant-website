@@ -66,15 +66,6 @@ test("preview cart persists across pages, confirms no order and supports quantit
   await expect(page.locator("#cartCount")).toHaveText("1");
   await page.locator("#cartBtn").click();
   await expect(page.locator("#cartDrawer")).toHaveClass(/open/);
-  console.log("CART_FOCUS_DIAGNOSTIC", await page.evaluate(() => {
-    const drawer = document.querySelector("#cartDrawer");
-    const close = document.querySelector("#cartClose");
-    return { activeId: document.activeElement?.id, activeTag: document.activeElement?.tagName,
-      drawerInert: drawer.inert, drawerVisibility: getComputedStyle(drawer).visibility,
-      drawerOpen: drawer.classList.contains("open"),
-      closeVisibility: getComputedStyle(close).visibility,
-      closeDisabled: close.disabled, focusable: close.tabIndex, bodyPage: document.body.dataset.page };
-  }));
   await expect(page.locator("#cartClose")).toBeFocused();
   await expect(page.locator("#cartSubtotal")).toHaveText("UGX 35,000");
   await page.locator('[data-plus="1"]').click();
