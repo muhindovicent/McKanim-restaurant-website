@@ -1,0 +1,47 @@
+name: Snapshot reviewed DineSight migration and lockfile
+# One-time PR branch preparation. Runs only when this workflow file changes.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/snapshot-dinesight-artifacts.yml'
+permissions:
+  contents: write
+jobs:
+  snapshot:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/dinesight-staging-configuration' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Generate deterministic migration and lockfile
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:only_ci@localhost:5432/not_used
+        run: |
+          set -eu
+          npm install --no-audit --no-fund
+          npm run db:validate
+          mkdir -p prisma/migrations/0_init
+          npx prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script > prisma/migrations/0_init/migration.sql
+          cat prisma/sql/required-constraints.sql >> prisma/migrations/0_init/migration.sql
+          printf 'provider = "postgresql"\n' > prisma/migrations/migration_lock.toml
+          npm ci --no-audit --no-fund
+          node --check scripts/verify-owner-invitations.mjs
+          test -s package-lock.json
+          test -s prisma/migrations/0_init/migration.sql
+      - name: Commit reviewed artifacts to review branch only
+        run: |
+          set -eu
+          git add backend/package-lock.json backend/prisma/migrations/0_init/migration.sql backend/prisma/migrations/migration_lock.toml
+          if git diff --cached --quiet; then
+            echo "Artifacts already match the current schema."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Phase 9B: version initial migration and locked backend dependencies"
+          git push origin HEAD:refs/heads/feature/dinesight-staging-configuration
