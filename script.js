@@ -212,10 +212,10 @@ function renderMenu() {
 }
 
 function initFilters() {
-  $("#menuFilters .filter-btn").forEach((btn) => {
+  $$("#menuFilters .filter-btn").forEach((btn) => {
     btn.setAttribute("aria-pressed", String(btn.classList.contains("active")));
     btn.addEventListener("click", () => {
-      $("#menuFilters .filter-btn").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
+      $$("#menuFilters .filter-btn").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
       btn.classList.add("active");
       btn.setAttribute("aria-pressed", "true");
       currentFilter = btn.dataset.filter;
@@ -431,7 +431,7 @@ function initNav() {
 
 
 function initReveal() {
-  const els = $(".reveal");
+  const els = $$(".reveal");
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
