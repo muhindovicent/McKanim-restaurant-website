@@ -20,6 +20,12 @@ jobs:
           node --check integration/dinesight-client.js
       - name: Structural, integration contract and trust checks
         run: node --test tests/*.test.cjs
+      - name: Verify Render staging publish allowlist
+        run: |
+          bash scripts/build-mckanim-preview.sh
+          test ! -e render-public/backend
+          test ! -e render-public/docs
+          test ! -e render-public/.env
 
   browser:
     runs-on: ubuntu-latest
