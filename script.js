@@ -315,6 +315,16 @@ function initNav() {
   });
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && navLinks.classList.contains("open")) closeMenu(true);
+    if (event.key === "Tab" && navLinks.classList.contains("open") && mobileViewport.matches) {
+      const links = [...navLinks.querySelectorAll("a[href]")];
+      if (!links.length) return;
+      const first = links[0], last = links[links.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
+    }
   });
 
   document.addEventListener("click", event => {
