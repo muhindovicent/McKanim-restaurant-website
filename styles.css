@@ -1518,3 +1518,18 @@ h3 {
     transform: none;
   }
 }
+/* Accessible, restrained editorial foundation. */
+.skip-link {position:fixed;left:16px;top:-100px;z-index:5000;background:var(--green-dark);color:#fff;padding:12px 18px;border-radius:8px}
+.skip-link:focus{top:12px}
+:where(a,button,input,select,textarea):focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.preview-note{font-size:13px;line-height:1.7;color:var(--muted);max-width:540px}
+.menu-note{text-align:center;margin:-10px auto 28px}
+.reserve-notice{display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.reserve-notice p{color:var(--muted);line-height:1.8}
+.contact-inner-single{grid-template-columns:minmax(0,1fr);max-width:760px}
+.hero-img{border-radius:12px}
+.about-points li{list-style:none;position:relative;padding-left:22px}
+.about-points li::before{content:"—";position:absolute;left:0;color:var(--gold)}
+.menu-card{border:1px solid var(--line);box-shadow:0 8px 28px rgba(20,50,38,.05)}
+.menu-card:hover{transform:translateY(-2px)}
+@media(max-width:640px){.hero-img{aspect-ratio:4/3}.hero-cta .btn{white-space:normal;text-align:center}}
