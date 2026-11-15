@@ -2,11 +2,16 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 const js = fs.readFileSync(path.join(root, "script.js"), "utf8");
+const configSource = fs.readFileSync(path.join(root, "content", "site-content.js"), "utf8");
+const context = { window: {} };
+vm.runInNewContext(configSource, context, { timeout: 1000 });
+const contentConfig = context.window.McKanimContent;
 
 test("landmarks, page title and viewport exist", () => {
   assert.match(html, /<html lang="en">/);
@@ -76,10 +81,27 @@ test("UGX is the only currency shown on the concept menu", () => {
   assert.doesNotMatch(html, /Sample menu in USD|\$0\.00/);
   assert.match(js, /new Intl\.NumberFormat\("en-UG"/);
   assert.match(js, /return `UGX \$\{ugxFormatter\.format\(amountUGX\)\}`/);
-  const menuSource = js.slice(js.indexOf("const menuItems = ["), js.indexOf("\n];") + 3);
-  const prices = [...menuSource.matchAll(/\bprice:\s*(\d+),/g)].map(m => Number(m[1]));
-  assert.equal(prices.length, 16, "All 16 sample menu items need an integer UGX price");
-  for (const price of prices) {
-    assert.ok(Number.isSafeInteger(price) && price > 0, "Menu prices must be positive whole UGX values");
+  const prices = contentConfig.menuItems.map(item => item.price);
+  assert.equal(prices.length, 16, "All 16 sample items require UGX prices");
+  for (const price of prices) assert.ok(Number.isSafeInteger(price) && price > 0);
+  assert.equal(contentConfig.restaurant.currency, "UGX");
+});
+
+test("content configuration is loaded before application script", () => {
+  const contentTag = 'src="content/site-content.js" defer';
+  const appTag = 'src="script.js" defer';
+  assert.ok(html.indexOf(contentTag) >= 0);
+  assert.ok(html.indexOf(appTag) > html.indexOf(contentTag));
+  assert.match(js, /const siteContent = window\.McKanimContent/);
+  assert.equal(contentConfig.galleryImages.length, 8);
+});
+
+test("prototype cannot claim restaurant owner approval or enable fake transactions", () => {
+  assert.equal(contentConfig.restaurant.mode, "concept-preview");
+  for (const [name, approved] of Object.entries(contentConfig.restaurant.approvals)) {
+    assert.equal(approved, false, name + " must remain unapproved until the owner verifies it");
   }
+  const ids = contentConfig.menuItems.map(x => x.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(contentConfig.menuItems.every(x => typeof x.img === "string" && x.img.startsWith("https://")));
 });
