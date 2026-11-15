@@ -125,7 +125,7 @@ test("direct deep links survive browser reload", async ({ page }) => {
 
 test("gallery lightbox supports keyboard navigation and focus restoration", async ({ page }) => {
   await page.goto("/gallery");
-  const first = page.getByRole("button", { name: /Open photograph 1 of 8/ });
+  const first = page.getByRole("button", { name: /View photograph 1 of 8/ });
   await first.click();
   await expect(page.locator("#galleryLightbox")).toBeVisible();
   await expect(page.locator("#lightboxCount")).toHaveText("1 of 8");
