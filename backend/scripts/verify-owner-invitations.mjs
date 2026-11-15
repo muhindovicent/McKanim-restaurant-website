@@ -61,10 +61,12 @@ try {
   assert.equal(anotherRecord.restaurantId, anotherRestaurant.id);
   assert.notEqual(anotherRecord.restaurantId, restaurant.id);
 
+  // Keep the database CHECK (expiresAt > createdAt) valid while simulating expiry.
   await db.ownerInvitation.update({
     where: { id: anotherRecord.id },
-    data: { expiresAt: new Date(Date.now() - 1000) },
+    data: { expiresAt: new Date(anotherRecord.createdAt.getTime() + 1) },
   });
+  await new Promise(resolve => setTimeout(resolve, 20));
   await assert.rejects(
     service.redeemOwnerInvitation({ rawToken: anotherTenant.rawToken, password, displayName: "Example Owner" }),
     error => error.status === 400,
