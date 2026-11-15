@@ -451,9 +451,10 @@ function renderGallery() {
   $("#galleryGrid").innerHTML = galleryImages
     .map(
       (g, i) => `
-      <div class="gallery-item" data-cap="${g.cap}" style="animation-delay:${i * 40}ms">
-        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="600" loading="lazy" decoding="async" />
-      </div>`
+      <figure class="gallery-item">
+        <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
+        <figcaption class="gallery-caption">${g.cap}</figcaption>
+      </figure>`
     )
     .join("");
 }
