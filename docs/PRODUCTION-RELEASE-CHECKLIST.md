@@ -5,7 +5,8 @@
 ## 1. Content authorization (restaurant owner)
 - [ ] Confirm business name, address, phone, official email and opening hours.
 - [ ] Confirm brand name spelling, founding date, head chef, cuisine and marketing claims (if shown).
-- [ ] Confirm full menu names, descriptions, prices in the operating currency, availability, allergens, and photos.
+- [ ] Confirm full menu names, descriptions, official UGX prices, availability, allergens, serving sizes, and photos.
+- [ ] Confirm whether displayed UGX prices include tax/service charges and how the final bill is calculated.
 - [ ] Provide original food and premises images, with explicit web publication rights and alt text.
 - [ ] Verify external social links and real location map before displaying.
 - [ ] Supply truthful, permissioned testimonials only if restaurant approves publication.
