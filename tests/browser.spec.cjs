@@ -10,13 +10,16 @@ test("homepage loads without client JavaScript errors and renders menu", async (
   const errors = [];
   page.on("pageerror", err => errors.push(err.message));
   await page.reload();
+  await page.getByRole("link", { name: "Menu", exact: true }).first().click();
   const initialItems = await page.locator(".menu-card").count();
   expect(initialItems).toBeGreaterThan(5);
+  await page.getByRole("link", { name: "Gallery", exact: true }).first().click();
   await expect(page.locator(".gallery-item")).not.toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
 test("category filters update menu items and pressed state", async ({ page }) => {
+  await page.goto("/menu");
   const allItems = await page.locator(".menu-card").count();
   expect(allItems).toBeGreaterThan(5);
   await page.getByRole("button", { name: "Burgers", exact: true }).click();
@@ -29,6 +32,7 @@ test("category filters update menu items and pressed state", async ({ page }) =>
 });
 
 test("menu selection and ordering information never claim a real order", async ({ page }) => {
+  await page.goto("/menu");
   await page.locator(".menu-card .add-btn").first().click();
   await expect(page.locator("#cartCount")).toHaveText("1");
   await page.locator("#cartBtn").click();
@@ -79,6 +83,7 @@ test("create visual review screenshot", async ({ page }, testInfo) => {
 });
 
 test("all menu and cart price labels use UGX consistently", async ({ page }) => {
+  await page.goto("/menu");
   const menuPrices = await page.locator(".menu-price").allTextContents();
   expect(menuPrices.length).toBe(16);
   for (const price of menuPrices) {
@@ -90,4 +95,58 @@ test("all menu and cart price labels use UGX consistently", async ({ page }) => 
   await expect(page.locator("#cartSubtotal")).toHaveText("UGX 35,000");
   await page.locator('[data-plus="1"]').click();
   await expect(page.locator("#cartSubtotal")).toHaveText("UGX 70,000");
+});
+
+test("primary navigation opens immediate clean routes and respects history", async ({ page }) => {
+  const links = [["Menu","/menu"],["About","/about"],["Gallery","/gallery"],["Reviews","/reviews"],["Reservations","/reservations"],["Contact","/contact"],["Home","/"]];
+  for (const [label, path] of links) {
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: label, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(path === "/" ? "/$" : path + "$"));
+    await expect(page.locator('[data-page]:not([hidden]) h1')).toHaveCount(1);
+    await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: label, exact: true })).toHaveAttribute("aria-current","page");
+  }
+  await page.goBack();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(page.getByRole("heading", { name: "Stay close to McKanim" })).toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL(/\/$/);
+});
+
+test("direct deep links survive browser reload", async ({ page }) => {
+  for (const route of ["/menu","/about","/gallery","/reviews","/reservations","/contact"]) {
+    await page.goto(route);
+    await expect(page.locator('[data-page]:not([hidden]) h1')).toHaveCount(1);
+    await page.reload();
+    await expect(page.locator('[data-page]:not([hidden]) h1')).toHaveCount(1);
+  }
+});
+
+test("gallery lightbox supports keyboard navigation and focus restoration", async ({ page }) => {
+  await page.goto("/gallery");
+  const first = page.getByRole("button", { name: /Open photograph 1 of 8/ });
+  await first.click();
+  await expect(page.locator("#galleryLightbox")).toBeVisible();
+  await expect(page.locator("#lightboxCount")).toHaveText("1 of 8");
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#lightboxCount")).toHaveText("2 of 8");
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator("#lightboxCount")).toHaveText("1 of 8");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#galleryLightbox")).not.toBeVisible();
+  await expect(first).toBeFocused();
+});
+
+test("reduced motion disables entrance animation", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.locator("#home")).toBeVisible();
+  const anim = await page.locator("#home").evaluate(el => getComputedStyle(el).animationName);
+  expect(anim).toBe("none");
+});
+
+test("no fake reviews or booking confirmations are presented", async ({ page }) => {
+  await page.goto("/reviews");
+  await expect(page.getByText(/do not invent testimonials/i)).toBeVisible();
+  await page.goto("/reservations");
+  await expect(page.getByText(/Online reservations are not available yet/i)).toBeVisible();
 });
