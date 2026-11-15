@@ -32,3 +32,9 @@ These checks verify basic document structure and prototype safety. They do **not
 ## DineSight architecture path
 
 The public McKanim website will eventually connect to the DineSight NestJS API and PostgreSQL database. The operational workflows (tables, QR ordering, kitchen, cleaning and real-time notifications) will be implemented separately and connected through secure APIs. Camera AI is a later feature, not a requirement for the first restaurant launch.
+
+## Browser-based regression tests
+
+Pull requests run static tests plus Chromium desktop and mobile tests through GitHub Actions. The browser workflow verifies that the page initializes, menu filters work, the menu selection dialog is honest, Escape closes the cart, and mobile navigation can be used by keyboard. Screenshots, traces and an HTML test report are uploaded as the `mckanim-browser-review` workflow artifact.
+
+These tests do not establish production readiness or verify real business data. Do not merge or publish until you have visually reviewed the browser screenshots and supplied authentic restaurant content.
