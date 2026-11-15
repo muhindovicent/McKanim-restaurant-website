@@ -105,7 +105,7 @@ test("primary navigation opens immediate clean routes and respects history", asy
     await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: label, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(path === "/" ? "/$" : path + "$"));
     await expect(page.locator('[data-page]:not([hidden]) h1')).toHaveCount(1);
-    await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: label, exact: true })).toHaveAttribute("aria-current","page");
+    await expect(page.locator(`#navLinks .nav-link[data-route="${path === "/" ? "home" : path === "/reservations" ? "reserve" : path.slice(1)}"]`)).toHaveAttribute("aria-current","page");
   }
   await page.goBack();
   await expect(page).toHaveURL(/\/contact$/);
