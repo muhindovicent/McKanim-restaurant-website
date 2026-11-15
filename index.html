@@ -12,7 +12,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="McKanim Restaurant | Dining Concept" />
     <meta property="og:description" content="Explore a sample menu and the McKanim dining concept. Ordering and reservations are not yet available." />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +20,7 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/styles.css" />
   </head>
 
   <body>
@@ -28,17 +28,19 @@
     
     <header class="navbar" id="navbar">
       <div class="container nav-inner">
-        <a href="#home" class="brand" >
+        <a href="/" class="brand" data-route="home" aria-label="McKanim home">
           <span class="brand-mark" aria-hidden="true">M</span>
           <span class="brand-text">McKanim<small>Restaurant</small></span>
         </a>
 
         <nav class="nav-links" id="navLinks" aria-label="Primary">
-          <a href="#home" class="nav-link active">Home</a>
-          <a href="#menu" class="nav-link">Menu</a>
-          <a href="#about" class="nav-link">About</a>
-          <a href="#gallery" class="nav-link">Gallery</a>
-          <a href="#contact" class="nav-link">Contact</a>
+          <a href="/" class="nav-link active" data-route="home" aria-current="page">Home</a>
+          <a href="/menu" class="nav-link" data-route="menu">Menu</a>
+          <a href="/about" class="nav-link" data-route="about">About</a>
+          <a href="/gallery" class="nav-link" data-route="gallery">Gallery</a>
+          <a href="/reviews" class="nav-link" data-route="reviews">Reviews</a>
+          <a href="/reservations" class="nav-link" data-route="reserve">Reservations</a>
+          <a href="/contact" class="nav-link" data-route="contact">Contact</a>
         </nav>
 
         <div class="nav-actions">
@@ -50,7 +52,7 @@
             </svg>
             <span class="cart-count" id="cartCount">0</span>
           </button>
-          <a href="#reserve" class="btn btn-primary nav-reserve">Reservations</a>
+          <a href="/reservations" class="btn btn-primary nav-reserve" data-route="reserve">Plan a Visit</a>
           <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
             <span></span><span></span><span></span>
           </button>
@@ -58,12 +60,12 @@
       </div>
     </header>
 
-    <main id="main-content">
-    <section class="hero" id="home">
+    <main id="main-content" tabindex="-1">
+    <section class="hero" id="home" data-page="home" aria-labelledby="homeTitle">
       <div class="container hero-inner">
         <div class="hero-content reveal">
           <span class="eyebrow">Welcome to McKanim</span>
-          <h1 class="hero-title">
+          <h1 class="hero-title" id="homeTitle">
             Great food,<br />
             <em>honest recipes,</em><br />
             unforgettable taste.
@@ -73,8 +75,8 @@
             dining concept through our sample menu and visual story.
           </p>
           <div class="hero-cta">
-            <a href="#menu" class="btn btn-primary">Explore the Menu</a>
-            <a href="#reserve" class="btn btn-outline">Reservation Information</a>
+            <a href="/menu" class="btn btn-primary" data-route="menu">Explore the Menu</a>
+            <a href="/reservations" class="btn btn-outline" data-route="reserve">Reservation Information</a>
           </div>
           <p class="preview-note">Concept website · Online ordering and reservations are not yet active.</p>
         </div>
@@ -92,7 +94,7 @@
     </section>
 
   
-    <section class="strip" aria-label="Discover McKanim">
+    <section class="strip" data-page="home" aria-label="Discover McKanim">
       <div class="container strip-inner">
         <div class="strip-item"><p><strong>Explore the Menu</strong><small>Sample dishes and pricing</small></p></div>
         <div class="strip-item"><p><strong>Our Approach</strong><small>Food made to be enjoyed</small></p></div>
@@ -101,11 +103,11 @@
       </div>
     </section>
 
-    <section class="section menu" id="menu">
+    <section class="section menu" id="menu" data-page="menu" aria-labelledby="menuTitle" hidden>
       <div class="container">
         <div class="section-heading reveal">
           <span class="eyebrow">Menu Preview</span>
-          <h2>A taste of what's possible</h2>
+          <h1 id="menuTitle">A taste of what's possible</h1>
           <p>
             Explore the dishes in our sample menu. Menu items and prices are
             illustrative until verified by the restaurant.
@@ -128,7 +130,7 @@
     </section>
 
   
-    <section class="section about" id="about">
+    <section class="section about" id="about" data-page="about" aria-labelledby="aboutTitle" hidden>
       <div class="container about-inner">
         <div class="about-visual reveal">
           <div class="about-img-main" role="img" aria-label="Illustrative restaurant food presentation"></div>
@@ -136,7 +138,7 @@
         </div>
         <div class="about-content reveal">
           <span class="eyebrow">Our Story</span>
-          <h2>Made for moments around the table</h2>
+          <h1 id="aboutTitle">Made for moments around the table</h1>
           <p>
             Our vision for McKanim is simple: a welcoming place where
             thoughtful cooking, generous flavors, and shared moments
@@ -148,18 +150,18 @@
             <li>A warm, understated approach to hospitality</li>
           </ul>
           <div class="about-meta">
-            <a href="#contact" class="btn btn-dark">Visit Us</a>
+            <a href="/contact" class="btn btn-dark" data-route="contact">Contact Information</a>
           </div>
         </div>
       </div>
     </section>
 
     
-    <section class="section gallery" id="gallery">
+    <section class="section gallery" id="gallery" data-page="gallery" aria-labelledby="galleryTitle" hidden>
       <div class="container">
         <div class="section-heading reveal">
           <span class="eyebrow">Gallery</span>
-          <h2>Food, in focus</h2>
+          <h1 id="galleryTitle">Food, in focus</h1>
           <p>Illustrative gallery images; original McKanim photography is required before launch.</p>
         </div>
         <div class="gallery-grid reveal" id="galleryGrid"></div>
@@ -167,26 +169,34 @@
     </section>
 
     
-        <section class="section reserve" id="reserve">
+        <section class="section reviews" id="reviews" data-page="reviews" aria-labelledby="reviewsTitle" hidden>
+      <div class="container reviews-inner">
+        <span class="eyebrow">Guest Experiences</span>
+        <h1 id="reviewsTitle">Good words must be earned.</h1>
+        <p>Verified guest reviews will appear after McKanim begins operating and guests consent to publication. We do not invent testimonials or ratings for a restaurant concept.</p>
+        <a href="/menu" class="btn btn-dark" data-route="menu">Explore our menu preview</a>
+      </div>
+    </section>
+    <section class="section reserve" id="reserve" data-page="reserve" aria-labelledby="reserveTitle" hidden>
       <div class="container reserve-inner">
         <div class="reserve-content reveal">
           <span class="eyebrow">Reservations</span>
-          <h2>Plan your visit</h2>
+          <h1 id="reserveTitle">Plan your visit</h1>
           <p>Online reservations are not available yet. This preview does not take or confirm bookings.</p>
         </div>
         <div class="reserve-form reserve-notice reveal">
           <h3>Reservations opening soon</h3>
           <p>Verified booking contact details and an operational reservation service will be added before launch.</p>
-          <a href="#contact" class="btn btn-primary">Restaurant information</a>
+          <a href="/contact" class="btn btn-primary" data-route="contact">Restaurant information</a>
         </div>
       </div>
     </section>
 
-        <section class="section contact" id="contact">
+        <section class="section contact" id="contact" data-page="contact" aria-labelledby="contactTitle" hidden>
       <div class="container contact-inner contact-inner-single">
         <div class="contact-card reveal">
           <span class="eyebrow">Contact</span>
-          <h2>Stay close to McKanim</h2>
+          <h1 id="contactTitle">Stay close to McKanim</h1>
           <p>We are preparing accurate contact information, location details and operating hours. These will appear here once verified.</p>
           <p class="preview-note">Please do not rely on this demonstration site for bookings, directions, or confirmed menu pricing.</p>
         </div>
@@ -197,7 +207,7 @@
     <footer class="footer">
       <div class="container footer-inner">
         <div class="footer-brand">
-          <a href="#home" class="brand">
+          <a href="/" class="brand" data-route="home">
             <span class="brand-mark" aria-hidden="true">M</span>
             <span class="brand-text">McKanim<small>Restaurant</small></span>
           </a>
@@ -208,10 +218,13 @@
         </div>
         <div class="footer-col">
           <h3>Quick Links</h3>
-          <a href="#home">Home</a>
-          <a href="#menu">Menu</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+          <a href="/" data-route="home">Home</a>
+          <a href="/menu" data-route="menu">Menu</a>
+          <a href="/about" data-route="about">About</a>
+          <a href="/gallery" data-route="gallery">Gallery</a>
+          <a href="/reviews" data-route="reviews">Reviews</a>
+          <a href="/reservations" data-route="reserve">Reservations</a>
+          <a href="/contact" data-route="contact">Contact</a>
         </div>
         <div class="footer-col">
           <h3>Contact</h3>
@@ -256,9 +269,21 @@
     </dialog>
 
     
+    <dialog class="gallery-lightbox" id="galleryLightbox" aria-label="Gallery photo viewer">
+      <div class="lightbox-inner">
+        <button class="lightbox-close" id="lightboxClose" aria-label="Close photo viewer">&times;</button>
+        <button class="lightbox-arrow lightbox-prev" id="lightboxPrev" aria-label="Previous photograph">&#8592;</button>
+        <figure class="lightbox-figure">
+          <img id="lightboxImage" src="" alt="" width="1440" height="960" decoding="async" />
+          <figcaption id="lightboxCaption"></figcaption>
+        </figure>
+        <button class="lightbox-arrow lightbox-next" id="lightboxNext" aria-label="Next photograph">&#8594;</button>
+        <span class="lightbox-count" id="lightboxCount" aria-live="polite"></span>
+      </div>
+    </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="content/site-content.js" defer></script>
-    <script src="script.js" defer></script>
+    <script src="/content/site-content.js" defer></script>
+    <script src="/script.js" defer></script>
   </body>
 </html>
