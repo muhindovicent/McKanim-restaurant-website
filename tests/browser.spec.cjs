@@ -62,6 +62,10 @@ test("mobile navigation opens, closes, and does not create horizontal overflow",
 });
 
 test("create visual review screenshot", async ({ page }, testInfo) => {
+  // Allow actual public images and web fonts when recording screenshots.
+  await page.unroute(/^https:\/\/(images\.unsplash\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1500);
   fs.mkdirSync("screenshots", { recursive: true });
-  await page.screenshot({ path: "screenshots/" + testInfo.project.name + ".png", fullPage: true });
+  await page.screenshot({ path: "screenshots/" + testInfo.project.name + ".png", fullPage: true, timeout: 20000 });
 });
