@@ -65,7 +65,15 @@ test("create visual review screenshot", async ({ page }, testInfo) => {
   // Allow actual public images and web fonts when recording screenshots.
   await page.unrouteAll();
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(1500);
+  // Scroll through the entire page to load lazily requested food and gallery photos.
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  const step = Math.max(500, Math.round((await page.evaluate(() => window.innerHeight)) * 0.7));
+  for (let y = 0; y < height; y += step) {
+    await page.evaluate(pos => window.scrollTo(0, pos), y);
+    await page.waitForTimeout(80);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(1600);
   fs.mkdirSync("screenshots", { recursive: true });
   await page.screenshot({ path: "screenshots/" + testInfo.project.name + ".png", fullPage: true, timeout: 20000 });
 });
