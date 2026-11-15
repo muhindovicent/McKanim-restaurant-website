@@ -223,3 +223,16 @@ a, button, input, select { -webkit-tap-highlight-color: transparent; }
   .page-content { animation: none !important; }
   .menu-card:hover, .discover-card:hover, .hero-visual, .menu-card:hover img, .gallery-item:hover img { transform: none !important; }
 }
+
+/* Progressive editorial reveal; no JS or reduced motion means all content stays visible. */
+.motion-ready .page-about .about-visual.reveal:not(.visible),
+.motion-ready .page-about .about-content.reveal:not(.visible),
+.motion-ready .page-reviews .review-visual.reveal:not(.visible),
+.motion-ready .page-reviews .review-content.reveal:not(.visible),
+.motion-ready .page-gallery .gallery-grid.reveal:not(.visible) {
+  opacity: .86; transform: translateY(14px);
+}
+.motion-ready .reveal.visible {
+  opacity: 1; transform: none;
+  transition: opacity 300ms var(--motion-ease), transform 300ms var(--motion-ease);
+}
