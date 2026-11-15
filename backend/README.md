@@ -69,3 +69,9 @@ The `branchLimit` is an entitlement, not a completed subscription billing featur
 **Not yet implemented:** owner accounts, login, authorized staff membership, subscription payment, kitchen, ordering, or full tenant-isolation enforcement. Provisioning through internal calls alone is not customer-ready.
 
 Run `npm run build && npm test`; the new unit tests cover branch limit, disabled publishing, invalid IDs, and future multi-location entitlement.
+
+## Phase 9B.3 — secure owner invitation foundation
+
+`OwnerInvitation` stores a **hash** of each random one-time invitation token, not the token itself. An internal NestJS `OwnerInvitationService` can issue and atomically redeem 24-hour owner invitations, creating a restaurant-scoped OWNER staff record with a salted scrypt password hash. Unit and PostgreSQL tests exercise expiry, replay, revocation and restaurant boundaries. **No real email address is hardcoded or seeded**; the intended recipient must be supplied through secure configuration after a transactional mail provider and approved staging deployment exist.
+
+There is **no authenticated owner login, no email delivery, no public invite endpoint, and no active production owner account yet**. Details: `../docs/security/MCKANIM-OWNER-INVITATION.md`.
