@@ -1,5 +1,30 @@
 # Neon staging database — first persistent migration approval gate
 
+## Actual staging installation and verification — 15 November 2026
+
+**State updated:** This section supersedes the earlier pre-installation instructions. The two SQL-preview branches were explicitly approved for discard and deleted. The default `staging` branch received its initial schema via the committed Prisma CLI workflow, NOT by promoting a raw SQL preview.
+
+- **Neon project:** `dinesight-staging` (Frankfurt); database `neondb`, default branch `staging`.
+- **Render API service:** `dinesight-api-staging`, free Node web service, Frankfurt; automatic deployments disabled.
+- **API service URL:** https://dinesight-api-staging.onrender.com
+- **Source commit:** `2f30532f85db962a0da76ae0b71837e2c5b8d57a`, branch `feature/dinesight-staging-configuration`.
+- **Migration:** `npm run db:migrate:deploy` ran against the default Neon `staging` database. Render logs explicitly show `Applying migration 0_init` and `All migrations have been successfully applied`.
+- **Database inspection:** 13 DineSight application tables plus `_prisma_migrations`; one successful `0_init` history row; active session and invitation uniqueness indexes; UGX pricing and branch-limit CHECK constraints.
+- **Customer data:** no organization records and no restaurant records. No password, owner invitation, real menu, customer order or payment has been created.
+- **Runtime isolation:** a separate `dinesight_api_runtime` PostgreSQL role has SELECT/INSERT access but no CREATE privilege on the `public` schema. Render service `DATABASE_URL` updated to the restricted role; subsequent build logs show `No pending migrations to apply` and new deployment became live.
+- **API startup:** Render confirms the NestJS server starts successfully and maps health/live, health/ready and the public menu endpoints.
+- **External HTTP check caveat:** An independent HTTPS fetch was unavailable from this environment; do not claim that a public 200 response has been directly inspected.
+
+### Remaining engineering obligation
+
+The Render build command **currently runs `prisma migrate deploy`**. For future schema changes, do not promote new migrations using the restricted runtime role; run them with a separate, authenticated migration-capable identity in a one-time authorized job, then build/restart the API using `dinesight_api_runtime` only. Before next production release, remove `migrate deploy` from the recurring API build command (change via Render Settings or infrastructure-as-code), and test least-privilege behavior. This staging installation is not a production launch.
+
+**Render Free is for development/test only.** No billing, staff login, guest ordering or invitation delivery is active.
+
+---
+
+
+
 **Status 15 November 2026:** Schema validated on temporary Neon branches. No DineSight application tables have been installed on the default staging branch. This is an operational procedure, not authorization to apply the migration.
 
 ## Verified resources
