@@ -71,6 +71,23 @@ jobs:
           test -s prisma/migrations/migration_lock.toml
           grep -q 'one_active_session_per_table' prisma/migrations/0_init/migration.sql
           grep -q 'one_outstanding_owner_invite_per_email' prisma/migrations/0_init/migration.sql
+      - name: Ensure empty database fails the API readiness gate
+        run: |
+          set -eu
+          node dist/main.js > /tmp/dinesight-premigration-check.log 2>&1 &
+          API_PID=$!
+          trap 'kill "$API_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/health/live || true)
+            if [ "$CODE" = "200" ]; then break; fi
+            sleep 1
+          done
+          test "$CODE" = "200"
+          READY_CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/health/ready)
+          test "$READY_CODE" = "503"
+          kill "$API_PID"
+          wait "$API_PID" 2>/dev/null || true
+          trap - EXIT
       - name: Apply reviewed committed migrations to ephemeral PostgreSQL
         run: npm run db:migrate:deploy
       - name: Verify replay has no pending migrations
