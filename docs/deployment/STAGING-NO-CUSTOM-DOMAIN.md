@@ -2,6 +2,16 @@
 
 **Decision confirmed:** Use generated HTTPS provider hostnames for the initial McKanim + DineSight pilot. **This document is a deployment runbook, not evidence that hosting or email delivery has been connected.**
 
+## Hosting account verification — 15 November 2026
+
+The user's connected Vercel account exposes the team **vicent's projects** on the **Hobby** plan. An authenticated repository search found `muhindovicent/McKanim-restaurant-website`, but no existing McKanim Vercel project under this team.
+
+**Commercial use gate: HOLD.** Vercel Hobby is restricted to personal, non-commercial usage. DineSight is intended to be sold to paying restaurants. Upgrade the team to a commercially appropriate plan, or choose an eligible alternative host, **before** creating a Vercel deployment for this commercial project. No paid plan change is authorized by this runbook.
+
+Official policy: https://vercel.com/docs/plans/hobby
+
+Render has been connected by the user, but no Render deployment action has yet completed; do not claim an API URL or active service. A staging database, reviewed SQL migration and reproducible lockfile are still required before API deployment.
+
 ## 1. Separation of concerns
 
 | Surface | Provider | Example URL SHAPE (not an assigned hostname) | Purpose |
