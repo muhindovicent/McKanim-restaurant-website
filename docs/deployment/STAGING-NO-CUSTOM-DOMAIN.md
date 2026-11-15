@@ -12,6 +12,17 @@ Official policy: https://vercel.com/docs/plans/hobby
 
 Render has been connected by the user, but no Render deployment action has yet completed; do not claim an API URL or active service. A staging database, reviewed SQL migration and reproducible lockfile are still required before API deployment.
 
+## Cost-conscious staging alternative
+
+If the Vercel account remains on Hobby, do **not** deploy this commercial project there. Render supports **free static-site staging** on provider-generated `onrender.com` hostnames. This can serve McKanim's HTML/CSS/JS preview while Vercel's commercially eligible plan is pending. Render also supports free Node web services for development, but those are explicitly **not for production applications** and can spin down on inactivity. A real restaurant pilot will require suitable service availability, database backups, and an agreed budget.
+
+This is an alternative proposal, **not** an actual Render deployment. For a static site built from the current monorepo, use an explicit deploy/publish directory containing only the five intended frontend assets rather than serving the repository root, which contains backend source code and operational documents. Verify `/backend/` and `/docs/` return 404.
+
+Sources:
+- https://render.com/docs/static-sites
+- https://render.com/docs/free
+- https://vercel.com/docs/plans/hobby
+
 ## 1. Separation of concerns
 
 | Surface | Provider | Example URL SHAPE (not an assigned hostname) | Purpose |
