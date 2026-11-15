@@ -11,6 +11,7 @@ export class PublicMenuService {
       where: { slug },
       select: {
         slug: true, currency: true, published: true, updatedAt: true,
+        organization: { select: { active: true } },
         menuItems: {
           where: { published: true, available: true },
           select: {
@@ -23,7 +24,7 @@ export class PublicMenuService {
       },
     });
     // Never disclose unpublished restaurants or unapproved menu content.
-    if (!restaurant || !restaurant.published) throw new NotFoundException("Menu not available");
+    if (!restaurant || !restaurant.published || !restaurant.organization.active) throw new NotFoundException("Menu not available");
     const latest = restaurant.menuItems.reduce(
       (previous, item) => item.updatedAt > previous ? item.updatedAt : previous,
       restaurant.updatedAt,
