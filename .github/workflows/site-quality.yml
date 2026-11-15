@@ -1,4 +1,4 @@
-name: McKanim static site quality
+name: McKanim site quality
 on:
   pull_request:
   push:
@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 jobs:
-  verify:
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,5 +15,30 @@ jobs:
           node-version: "22"
       - name: JavaScript syntax validation
         run: node --check script.js
-      - name: Static regression checks
+      - name: Structural and trust checks
         run: node --test tests/site.test.cjs
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser test runner
+        run: npm install --no-audit --no-fund --no-save @playwright/test@1.65.1
+      - name: Install Chromium and dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Browser functional and responsive checks
+        run: npx playwright test --config=playwright.config.cjs
+      - name: Upload screenshots and browser test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mckanim-browser-review
+          path: |
+            screenshots/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
