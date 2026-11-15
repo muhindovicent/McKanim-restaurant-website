@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>McKanim Restaurant - Fresh, Flavorful, Memorable</title>
+    <title>McKanim Restaurant | Explore the Menu &amp; Dining Concept</title>
     <meta
       name="description"
       content="Explore the McKanim restaurant concept and sample menu. Verified booking, ordering, and restaurant details will be published when available."
     />
+    <meta name="theme-color" content="#0c2b1d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="McKanim Restaurant | Dining Concept" />
+    <meta property="og:description" content="Explore a sample menu and the McKanim dining concept. Ordering and reservations are not yet available." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -36,7 +42,7 @@
         </nav>
 
         <div class="nav-actions">
-          <button class="cart-btn" id="cartBtn" aria-label="Open cart">
+          <button class="cart-btn" id="cartBtn" aria-label="Open menu selection" aria-haspopup="dialog" aria-controls="cartDrawer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
@@ -63,8 +69,8 @@
             unforgettable taste.
           </h1>
           <p class="hero-sub">
-            From sizzling grills to handcrafted desserts — every plate at
-            McKanim is made fresh, seasoned boldly, and served with a smile.
+            A place for generous flavor and good company. Explore the McKanim
+            dining concept through our sample menu and visual story.
           </p>
           <div class="hero-cta">
             <a href="#menu" class="btn btn-primary">Explore the Menu</a>
@@ -73,8 +79,8 @@
           <p class="preview-note">Concept website · Online ordering and reservations are not yet active.</p>
         </div>
         <div class="hero-visual reveal">
-          <div class="hero-img" role="img" aria-label="Illustrative restaurant dining atmosphere"></div>
-                  </div>
+          <img class="hero-img" src="https://images.unsplash.com/photo-1544148103-0773bf10d330?w=1000&amp;q=82" alt="Illustrative photograph of a restaurant dining space, not the actual McKanim venue" width="1000" height="1200" fetchpriority="high" decoding="async" />
+        </div>
       </div>
     </section>
 
@@ -88,11 +94,11 @@
       </div>
     </section>
 
-        <section class="section menu" id="menu">
+    <section class="section menu" id="menu">
       <div class="container">
         <div class="section-heading reveal">
-          <span class="eyebrow">Our Menu</span>
-          <h2>Dishes you'll crave</h2>
+          <span class="eyebrow">Menu Preview</span>
+          <h2>A taste of what's possible</h2>
           <p>
             Explore the dishes in our sample menu. Menu items and prices are
             illustrative until verified by the restaurant.
@@ -118,12 +124,12 @@
     <section class="section about" id="about">
       <div class="container about-inner">
         <div class="about-visual reveal">
-          <div class="about-img-main"></div>
-          <div class="about-img-small"></div>
+          <div class="about-img-main" role="img" aria-label="Illustrative restaurant food presentation"></div>
+          <div class="about-img-small" aria-hidden="true"></div>
         </div>
         <div class="about-content reveal">
           <span class="eyebrow">Our Story</span>
-          <h2>Cooking with heart since day one</h2>
+          <h2>Made for moments around the table</h2>
           <p>
             Our vision for McKanim is simple: a welcoming place where
             thoughtful cooking, generous flavors, and shared moments
@@ -217,16 +223,16 @@
     </footer>
 
   
-    <div class="cart-overlay" id="cartOverlay"></div>
-    <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart">
+    <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+    <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" inert>
       <div class="cart-header">
-        <h3>Your Order</h3>
+        <h3 id="cartTitle">Your menu selection</h3>
         <button class="cart-close" id="cartClose" aria-label="Close cart">&times;</button>
       </div>
       <div class="cart-items" id="cartItems"></div>
       <div class="cart-footer">
         <div class="cart-total">
-          <span>Subtotal</span>
+          <span>Estimated subtotal</span>
           <strong id="cartSubtotal">$0.00</strong>
         </div>
         <button class="btn btn-primary btn-block" id="checkoutBtn">Ordering information</button>
@@ -234,17 +240,17 @@
     </aside>
 
     
-    <div class="modal-overlay" id="checkoutModal">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+    <dialog class="order-dialog" id="checkoutModal" aria-labelledby="modalTitle">
+      <div class="modal">
         <h3 id="modalTitle">Online ordering is not active yet</h3>
         <p>This is a menu preview only. No order has been sent or placed. Ordering will become available after the restaurant system is connected.</p>
-        <button class="btn btn-primary btn-block" id="modalClose">Done</button>
+        <button class="btn btn-primary btn-block" id="modalClose" autofocus>Understood</button>
       </div>
-    </div>
+    </dialog>
 
     
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
   </body>
 </html>
