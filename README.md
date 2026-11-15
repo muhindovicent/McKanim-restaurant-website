@@ -58,3 +58,20 @@ The site uses a regular deferred script rather than fetching JSON, so it can be 
 In the Pull Request, open the GitHub Actions **McKanim site quality** workflow for the latest commit. Download the `mckanim-standalone-preview` artifact, extract it, and open `index.html` in your browser. No Git checkout, Live Server or terminal is needed.
 
 For a future public preview URL, deploy a **separate protected staging environment** only after its access, source branch and public visibility are explicitly approved. GitHub Pages does not generally provide public pull-request preview deployments automatically.
+
+## Phase 8 — DineSight integration contract (design only)
+
+We have defined the future backend API in `contracts/dinesight-openapi.json` (OpenAPI 3.1.1) and the operational handoff in `docs/integration/PHASE8-HANDOFF.md`.
+
+An **opt-in**, framework-independent API adapter is available at `integration/dinesight-client.js`. It is **not loaded by the current website** and does not turn on checkout, customer authentication, table QR sessions, or kitchen operations by itself. The site remains a preview until the backend has been built, secured, tested, and explicitly connected.
+
+The proposed server is NestJS + PostgreSQL/Prisma. Guests submit only menu item IDs and quantities—not prices, amounts, or table IDs. Orders are priced in UGX by the backend, stored as pending, and confirmed by a waiter before being delivered to the kitchen.
+
+Run the new contract checks with:
+
+```sh
+node --check integration/dinesight-client.js
+node --test tests/*.test.cjs
+```
+
+Successful mock tests **are not proof of a running backend**. No restaurant ordering, billing, payments, or reservations are currently operational.
