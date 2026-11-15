@@ -51,3 +51,11 @@ Tests in 9A are primarily source/schema checks. Database integration tests and f
 ## Delivery architecture
 
 McKanim stays the public restaurant website; the NestJS API is a separate application within the repository for now. A dedicated API deployment, managed PostgreSQL, secure staff authentication, rate limiting, monitoring, backups and data-protection controls are all required for the real customer product.
+
+## Multi-restaurant SaaS direction (confirmed 15 November 2026)
+
+DineSight is a product owned by its developer and intended for licensing/subscription to multiple restaurants; McKanim is a reference frontend, not the exclusive product owner. `Organization` is the paying customer boundary and `Restaurant.organizationId` identifies each branch. Newly created organizations default to **inactive**; their public menus must also be actively approved/published.
+
+**Security warning:** Tenant IDs and foreign keys alone do not enforce object-level access controls or block cross-tenant references. Staff membership, organization-scoped authorization, audited support access, cross-branch consistency constraints, and two-tenant security tests must be implemented in later phases. No private staff or ordering endpoints are active now. PostgreSQL RLS is an optional defense in depth that depends on actual hosting privileges and a proper runtime DB role.
+
+See `../docs/architecture/ADR-001-MULTI-TENANT-SAAS.md` and `../docs/commercial/DINESIGHT-LICENSING-MODEL.md`. No subscription billing has been implemented.
