@@ -76,6 +76,15 @@
         </div>
       </div>
     </section>
+<section class="section reservation-demo"><div class="container reservation-layout">
+<div class="reservation-explainer"><span class="eyebrow">Plan ahead</span><h2>Check your visit details</h2><p>This form checks your information on your device only. It does not send a request or reserve a table; real bookings will require an approved service.</p><p class="preview-note">No information entered here is transmitted to the restaurant.</p></div>
+<form id="reservationForm" class="reservation-form-card" novalidate aria-label="Reservation details preview">
+<div class="form-row"><div class="field"><label for="guestName">Your name</label><input id="guestName" name="guestName" type="text" autocomplete="name" minlength="2" maxlength="120" required aria-describedby="guestNameError"><small id="guestNameError" class="field-error"></small></div>
+<div class="field"><label for="guestEmail">Email address</label><input id="guestEmail" name="guestEmail" type="email" autocomplete="email" required aria-describedby="guestEmailError"><small id="guestEmailError" class="field-error"></small></div></div>
+<div class="form-row"><div class="field"><label for="visitDate">Preferred date</label><input id="visitDate" name="visitDate" type="date" required aria-describedby="visitDateError"><small id="visitDateError" class="field-error"></small></div>
+<div class="field"><label for="partySize">Party size</label><select id="partySize" name="partySize" required aria-describedby="partySizeError"><option value="">Choose guests</option><option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option><option value="4">4 guests</option><option value="5">5 guests</option><option value="6">6 guests</option><option value="7">7 guests</option><option value="8">8 guests</option></select><small id="partySizeError" class="field-error"></small></div></div>
+<div class="field"><label for="visitTime">Preferred time</label><input id="visitTime" name="visitTime" type="time" required aria-describedby="visitTimeError"><small id="visitTimeError" class="field-error"></small></div>
+<button class="btn btn-primary btn-block" type="submit">Check details (preview only)</button><p class="form-status" id="reservationStatus" role="status" aria-live="polite"></p></form></div></section>
 </main>
     <footer class="footer">
       <div class="container footer-inner">
