@@ -17,7 +17,7 @@ test("landmarks, page title and viewport exist", () => {
   assert.match(html, /<html lang="en">/);
   assert.match(html, /<title>McKanim Restaurant/);
   assert.match(html, /name="viewport"/);
-  assert.match(html, /<main id="main-content">/);
+  assert.match(html, /<main id="main-content" tabindex="-1">/);
   assert.match(html, /<nav[^>]*aria-label="Primary"/);
 });
 
