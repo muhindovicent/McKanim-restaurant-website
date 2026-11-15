@@ -40,7 +40,7 @@ test("demo storefront does not claim a real order or booking", () => {
 });
 
 test("menu and gallery imagery uses descriptive accessible images", () => {
-  assert.match(html, /<img class="hero-img"[^>]*fetchpriority="high"/);
+  assert.match(html, /<img\s+class="hero-img"[^>]*fetchpriority="high"/);
   assert.match(js, /alt="Illustrative food photography:/);
   assert.match(js, /loading="lazy"/);
   assert.match(css, /prefers-reduced-motion/);
