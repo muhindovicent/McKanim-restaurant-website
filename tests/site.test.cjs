@@ -58,3 +58,14 @@ test("category filter operates on collections, not a single element", () => {
   const collectionUses = js.split(selector).length - 1;
   assert.equal(collectionUses, 2, "The filter buttons must be iterated with querySelectorAll");
 });
+
+test("footer headings follow main page heading hierarchy", () => {
+  assert.doesNotMatch(html, /<h4>/, "No skipped footer heading levels are allowed");
+  assert.match(html, /<h3>Quick Links<\/h3>/);
+});
+
+test("hero photo uses responsive delivery while remaining clearly illustrative", () => {
+  assert.match(html, /class="hero-img"[\s\S]*?srcset=/);
+  assert.match(html, /sizes="\(max-width: 900px\) 92vw, 530px"/);
+  assert.match(html, /not the actual McKanim venue/);
+});
