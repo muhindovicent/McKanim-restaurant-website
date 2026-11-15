@@ -58,6 +58,11 @@ test("mobile navigation opens, closes, and does not create horizontal overflow",
   await page.getByRole("button", { name: "Toggle menu" }).click();
   await expect(page.locator("#navLinks")).toHaveClass(/open/);
   await expect(page.getByRole("button", { name: "Toggle menu" })).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#navLinks a").first()).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.locator("#navLinks a").last()).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#navLinks a").first()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.locator("#navLinks")).not.toHaveClass(/open/);
   await expect(page.getByRole("button", { name: "Toggle menu" })).toBeFocused();
