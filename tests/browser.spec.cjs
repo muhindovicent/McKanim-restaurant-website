@@ -10,10 +10,10 @@ test("homepage loads without client JavaScript errors and renders menu", async (
   const errors = [];
   page.on("pageerror", err => errors.push(err.message));
   await page.reload();
-  await page.getByRole("link", { name: "Menu", exact: true }).first().click();
+  await page.goto("/menu");
   const initialItems = await page.locator(".menu-card").count();
   expect(initialItems).toBeGreaterThan(5);
-  await page.getByRole("link", { name: "Gallery", exact: true }).first().click();
+  await page.goto("/gallery");
   await expect(page.locator(".gallery-item")).not.toHaveCount(0);
   expect(errors).toEqual([]);
 });
@@ -97,9 +97,11 @@ test("all menu and cart price labels use UGX consistently", async ({ page }) => 
   await expect(page.locator("#cartSubtotal")).toHaveText("UGX 70,000");
 });
 
-test("primary navigation opens immediate clean routes and respects history", async ({ page }) => {
+test("primary navigation opens immediate clean routes and respects history", async ({ page }, testInfo) => {
+  const isMobile = testInfo.project.name.includes("mobile");
   const links = [["Menu","/menu"],["About","/about"],["Gallery","/gallery"],["Reviews","/reviews"],["Reservations","/reservations"],["Contact","/contact"],["Home","/"]];
   for (const [label, path] of links) {
+    if (isMobile) await page.getByRole("button", { name: "Toggle menu" }).click();
     await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: label, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(path === "/" ? "/$" : path + "$"));
     await expect(page.locator('[data-page]:not([hidden]) h1')).toHaveCount(1);
