@@ -82,6 +82,13 @@ jobs:
         run: node scripts/verify-database.mjs
       - name: Test single-location concurrency and tenant scoping
         run: node scripts/verify-branch-provisioning.mjs
+      - name: Bootstrap McKanim pilot in temporary test database
+        env:
+          CONFIRM_MCKANIM_PREVIEW_BOOTSTRAP: 'yes'
+        run: |
+          npm run db:seed
+          npm run db:seed
+          node scripts/verify-mckanim-pilot.mjs
       - name: Validate running HTTP health and unpublished-menu behavior
         run: |
           set -e
