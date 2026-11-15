@@ -72,7 +72,7 @@ test("all public routes preserve the menu preview trust boundary", () => {
 });
 
 test("progressive motion and accessible controls are implemented", () => {
-  assert.match(premium, /@view-transition\s*\{\s*navigation:\s*auto/);
+  assert.match(premium, /page-content \\{ animation: page-reveal 180ms/);
   assert.match(premium, /page-reveal 180ms/);
   assert.match(premium, /prefers-reduced-motion: reduce/);
   assert.match(premium, /scroll-behavior: auto/);
