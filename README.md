@@ -4,7 +4,7 @@ This repository contains a static HTML/CSS/JavaScript concept website for McKani
 
 ## Current status
 
-**Preview only — not production ready.** The sample menu, USD prices, stock photographs, business story, contact information and hours are not verified restaurant operating data. The current cart is for menu exploration only; clicking the ordering information button does not place an order. Reservations are unavailable.
+**Preview only — not production ready.** The sample menu, illustrative UGX prices, stock photographs, business story, contact information and hours are not verified restaurant operating data. The current cart is for menu exploration only; clicking the ordering information button does not place an order. Reservations are unavailable.
 
 ## Local development
 
@@ -38,3 +38,9 @@ The public McKanim website will eventually connect to the DineSight NestJS API a
 Pull requests run static tests plus Chromium desktop and mobile tests through GitHub Actions. The browser workflow verifies that the page initializes, menu filters work, the menu selection dialog is honest, Escape closes the cart, and mobile navigation can be used by keyboard. Screenshots, traces and an HTML test report are uploaded as the `mckanim-browser-review` workflow artifact.
 
 These tests do not establish production readiness or verify real business data. Do not merge or publish until you have visually reviewed the browser screenshots and supplied authentic restaurant content.
+
+## Ugandan shilling display
+
+All sample menu figures use **integer UGX amounts** and display as `UGX 35,000` (never `$35.00` or cents). The numbers are demonstration prices informed by public Kampala restaurant menus, **not a currency conversion and not McKanim's official prices**. The menu is still non-operational.
+
+Before launch, the restaurant owner must provide approved item names, serving sizes, prices, applicable taxes/fees, availability, and currency rules. When DineSight is integrated, prices must come from the backend as integer Uganda shillings and be recalculated server-side; JavaScript-only figures must never determine final customer charges.
