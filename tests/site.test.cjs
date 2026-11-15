@@ -69,3 +69,17 @@ test("hero photo uses responsive delivery while remaining clearly illustrative",
   assert.match(html, /sizes="\(max-width: 900px\) 92vw, 530px"/);
   assert.match(html, /not the actual McKanim venue/);
 });
+
+test("UGX is the only currency shown on the concept menu", () => {
+  assert.match(html, /Illustrative prices in Ugandan shillings \(UGX\)/);
+  assert.match(html, /id="cartSubtotal">UGX 0<\/strong>/);
+  assert.doesNotMatch(html, /Sample menu in USD|\$0\.00/);
+  assert.match(js, /new Intl\.NumberFormat\("en-UG"/);
+  assert.match(js, /return `UGX \$\{ugxFormatter\.format\(amountUGX\)\}`/);
+  const menuSource = js.slice(js.indexOf("const menuItems = ["), js.indexOf("\n];") + 3);
+  const prices = [...menuSource.matchAll(/\bprice:\s*(\d+),/g)].map(m => Number(m[1]));
+  assert.equal(prices.length, 16, "All 16 sample menu items need an integer UGX price");
+  for (const price of prices) {
+    assert.ok(Number.isSafeInteger(price) && price > 0, "Menu prices must be positive whole UGX values");
+  }
+});
