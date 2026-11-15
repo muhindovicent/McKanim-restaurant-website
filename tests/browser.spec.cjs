@@ -156,7 +156,7 @@ test("no fake reviews or booking confirmations are presented", async ({ page }) 
   await page.goto("/reviews");
   await expect(page.getByText(/do not invent testimonials/i)).toBeVisible();
   await page.goto("/reservations");
-  await expect(page.getByText(/Reservations are not available yet in this concept preview/i)).toBeVisible();
+  await expect(page.getByText(/Confirmed reservations require direct staff approval/i)).toBeVisible();
 });
 
 test("downloadable preview remains navigable from a local HTML file", async ({ page }) => {
