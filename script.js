@@ -237,6 +237,9 @@ function getRoutePage() {
   return ROUTE_PAGES[pathname] || "home";
 }
 function showPage(page, updateHistory = false) {
+  if (page === "reserve") void refreshReservationAvailability();
+  if (page !== "home") pauseCinematicVideo();
+  else resumeCinematicVideo();
   if (!(page in PAGE_ROUTES)) return;
   if (updateHistory) {
     const url = location.protocol === "file:" ? `?page=${page}` : PAGE_ROUTES[page];
@@ -432,6 +435,182 @@ function initLightbox() {
 }
 
 
+
+// Cinematic motion is progressive enhancement. The poster remains functional
+// on slow networks, blocked video CDNs, reduced motion, and offline previews.
+let cinemaStarted = false;
+let cinemaManuallyPaused = false;
+function pauseCinematicVideo() {
+  const video = $("#heroCinemaVideo");
+  if (!video) return;
+  video.pause();
+  $("#home")?.classList.remove("is-film-playing");
+  const btn = $("#heroMotionToggle");
+  if (btn && !btn.hidden) {
+    btn.textContent = "Play film";
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-label", "Play background film");
+  }
+}
+function resumeCinematicVideo() {
+  const video = $("#heroCinemaVideo");
+  if (!video || !cinemaStarted || cinemaManuallyPaused || document.hidden ||
+      document.body.dataset.currentPage !== "home") return;
+  void video.play().catch(() => pauseCinematicVideo());
+}
+function initCinema() {
+  const video = $("#heroCinemaVideo");
+  const toggle = $("#heroMotionToggle");
+  if (!video || !toggle) return;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (prefersReducedMotion.matches || connection?.saveData) return;
+  video.muted = true;
+  video.playsInline = true;
+  video.src = video.dataset.src;
+  cinemaStarted = true;
+  video.addEventListener("playing", () => {
+    $("#home")?.classList.add("is-film-playing");
+    toggle.hidden = false;
+    toggle.textContent = "Pause film";
+    toggle.setAttribute("aria-pressed", "true");
+    toggle.setAttribute("aria-label", "Pause background film");
+  });
+  video.addEventListener("error", () => {
+    toggle.hidden = true;
+    $("#home")?.classList.remove("is-film-playing");
+  });
+  toggle.addEventListener("click", () => {
+    if (!video.paused) {
+      cinemaManuallyPaused = true;
+      pauseCinematicVideo();
+    } else {
+      cinemaManuallyPaused = false;
+      resumeCinematicVideo();
+    }
+  });
+  document.addEventListener("visibilitychange", () =>
+    document.hidden ? pauseCinematicVideo() : resumeCinematicVideo());
+  void video.play().catch(() => { toggle.hidden = true; });
+}
+
+// A public REQUEST endpoint is not an availability/confirmation service.
+// The backend must approve the organization and restaurant independently.
+const reservationApi = restaurant.reservationRequestApiBase;
+const reservationPath = "/api/v1/public/restaurants/mckanim/reservation-requests";
+let reservationRequestKey = null;
+function configureReservationDateInput() {
+  const field = $("#reservationDate");
+  if (!field) return;
+  const inUganda = new Date(Date.now() + 3 * 3600000);
+  field.min = inUganda.toISOString().slice(0, 10);
+  field.max = new Date(inUganda.getTime() + 60 * 86400000).toISOString().slice(0, 10);
+}
+async function refreshReservationAvailability() {
+  const form = $("#reservationForm");
+  const state = $("#reservationAvailability");
+  if (!form || !state || !form.hidden || $("#reservationReceipt")?.hidden === false) return;
+  configureReservationDateInput();
+  if (!reservationApi || location.protocol === "file:") {
+    state.textContent = "Online reservation requests are unavailable in this offline preview.";
+    return;
+  }
+  state.textContent = "Checking reservation request availability…";
+  const timeout = AbortSignal.timeout?.(10000);
+  try {
+    const response = await fetch(reservationApi + reservationPath + "/config", {
+      headers: { Accept: "application/json" }, cache: "no-store",
+      ...(timeout ? { signal: timeout } : {}),
+    });
+    if (!response.ok) throw new Error("Unavailable");
+    const config = await response.json();
+    if (config.acceptingRequests === true && config.bookingConfirmedAutomatically === false) {
+      form.hidden = false;
+      state.textContent = "Requests are open for staff review. Submission does not guarantee a table.";
+    } else {
+      state.textContent = "Online reservation requests are not active yet. No booking can be confirmed here.";
+    }
+  } catch {
+    state.textContent = "Online requests cannot be reached right now. Please try again later; no booking was made.";
+  }
+}
+function showReservationError(message) {
+  const error = $("#reservationError");
+  error.textContent = message;
+  error.hidden = false;
+  error.focus?.({ preventScroll: true });
+}
+function initReservations() {
+  const form = $("#reservationForm");
+  const submit = $("#reservationSubmit");
+  const receipt = $("#reservationReceipt");
+  if (!form) return;
+  configureReservationDateInput();
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    $("#reservationError").hidden = true;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    if (!$("#reservationConsent").checked) {
+      showReservationError("Please agree to be contacted about this request.");
+      return;
+    }
+    if (!reservationRequestKey) {
+      if (!crypto.randomUUID) {
+        showReservationError("Secure requests are unavailable in this browser.");
+        return;
+      }
+      reservationRequestKey = crypto.randomUUID();
+    }
+    const body = {
+      idempotencyKey: reservationRequestKey,
+      guestName: $("#reservationName").value.trim(),
+      guestPhone: $("#reservationPhone").value.trim(),
+      guestEmail: $("#reservationEmail").value.trim() || undefined,
+      visitDate: $("#reservationDate").value,
+      visitTime: $("#reservationTime").value,
+      partySize: Number($("#reservationParty").value),
+      notes: $("#reservationNotes").value.trim() || undefined,
+      website: $("#reservationWebsite").value,
+    };
+    submit.disabled = true;
+    submit.textContent = "Sending request…";
+    try {
+      const timeout = AbortSignal.timeout?.(12000);
+      const response = await fetch(reservationApi + reservationPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(body),
+        ...(timeout ? { signal: timeout } : {}),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (response.status !== 202 || result.status !== "PENDING_REVIEW" || !result.reference) {
+        if (response.status === 429) throw new Error("Too many requests. Please try again later.");
+        throw new Error("We could not record your request. Please retry; no booking is confirmed.");
+      }
+      form.hidden = true;
+      receipt.hidden = false;
+      $("#reservationReference").textContent = "Request reference: " + result.reference;
+      receipt.querySelector("h3")?.focus?.();
+      reservationRequestKey = null;
+      form.reset();
+    } catch (error) {
+      showReservationError(error?.message || "Unable to submit your request. Please retry.");
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "Send reservation request";
+    }
+  });
+  $("#reservationAnother").addEventListener("click", () => {
+    receipt.hidden = true;
+    form.hidden = false;
+    $("#reservationError").hidden = true;
+    $("#reservationName").focus();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("#year").textContent = new Date().getFullYear();
 
@@ -439,6 +618,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGallery();
 
   initLightbox();
+  initCinema();
+  initReservations();
   initFilters();
   bindAddButtons();
   bindCartEvents();
