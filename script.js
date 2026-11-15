@@ -449,7 +449,6 @@ function pauseCinematicVideo() {
   if (btn && !btn.hidden) {
     btn.textContent = "Play film";
     btn.setAttribute("aria-pressed", "false");
-    btn.setAttribute("aria-label", "Play background film");
   }
 }
 function resumeCinematicVideo() {
@@ -474,7 +473,6 @@ function initCinema() {
     toggle.hidden = false;
     toggle.textContent = "Pause film";
     toggle.setAttribute("aria-pressed", "true");
-    toggle.setAttribute("aria-label", "Pause background film");
   });
   video.addEventListener("error", () => {
     toggle.hidden = true;
