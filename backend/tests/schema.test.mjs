@@ -9,7 +9,7 @@ const app = fs.readFileSync(fileURLToPath(new URL("../src/main.ts", import.meta.
 const menu = fs.readFileSync(fileURLToPath(new URL("../src/menu/public-menu.service.ts", import.meta.url)), "utf8");
 
 test("models define the commercial restaurant and order backbone", () => {
-  for (const model of ["Restaurant","StaffUser","DiningTable","TableQrToken","TableVisit","TableSession","MenuCategory","MenuItem","CustomerOrder","OrderItem","OutboxEvent"]) {
+  for (const model of ["Organization","Restaurant","StaffUser","DiningTable","TableQrToken","TableVisit","TableSession","MenuCategory","MenuItem","CustomerOrder","OrderItem","OutboxEvent"]) {
     assert.match(schema, new RegExp("model " + model + " \\{"));
   }
 });
@@ -40,4 +40,17 @@ test("HTTPS cross-origin rules and request validation are present", () => {
   assert.match(app, /helmet\(\)/);
   assert.match(app, /credentials: false/);
   assert.match(app, /forbidNonWhitelisted: true/);
+});
+
+test("SaaS organizations own restaurant branches and start inactive", () => {
+  assert.match(schema, /model Organization \{/);
+  assert.match(schema, /organizationId\s+String\s+@db\.Uuid/);
+  assert.match(schema, /organization\s+Organization\s+@relation\(fields: \[organizationId\]/);
+  assert.match(schema, /active\s+Boolean\s+@default\(false\)/);
+  assert.match(schema, /@@index\(\[organizationId, published\]\)/);
+});
+
+test("unapproved customer organizations cannot expose public menus", () => {
+  assert.match(menu, /organization: \{ select: \{ active: true \} \}/);
+  assert.match(menu, /!restaurant\.organization\.active/);
 });
