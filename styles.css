@@ -4,6 +4,7 @@
   --green-dark: #0c2b1d;
   --green-soft: #dce9e0;
   --gold: #e0a62e;
+  --gold-ink: #805911;
   --gold-soft: #f7ecd5;
   --cream: #faf5ee;
   --surface: #ffffff;
@@ -73,7 +74,7 @@ h3 {
   font-weight: 600;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-ink);
   margin-bottom: 12px;
 }
 
@@ -1169,7 +1170,7 @@ h3 {
 .cart-line-info .price {
   font-size: 13px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--gold-ink);
 }
 
 .qty-control {
