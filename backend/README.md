@@ -75,3 +75,11 @@ Run `npm run build && npm test`; the new unit tests cover branch limit, disabled
 `OwnerInvitation` stores a **hash** of each random one-time invitation token, not the token itself. An internal NestJS `OwnerInvitationService` can issue and atomically redeem 24-hour owner invitations, creating a restaurant-scoped OWNER staff record with a salted scrypt password hash. Unit and PostgreSQL tests exercise expiry, replay, revocation and restaurant boundaries. **No real email address is hardcoded or seeded**; the intended recipient must be supplied through secure configuration after a transactional mail provider and approved staging deployment exist.
 
 There is **no authenticated owner login, no email delivery, no public invite endpoint, and no active production owner account yet**. Details: `../docs/security/MCKANIM-OWNER-INVITATION.md`.
+
+## Staging hosting without custom domains
+
+The first McKanim pilot will use **provider-generated HTTPS URLs** for Vercel's restaurant preview and Render's API. A separate Neon staging database will be provisioned after migrations and credentials are reviewed. See `../docs/deployment/STAGING-NO-CUSTOM-DOMAIN.md`.
+
+Set `NODE_ENV=production` and `APP_ENV=staging` for staging API runtime. The exact URL copied from Vercel must be configured in both `PUBLIC_WEB_ORIGIN` and `CORS_ORIGINS`. Startup fails closed on missing, untrusted, non-HTTPS or mismatched origins. `INVITATION_DELIVERY_MODE` is locked to `disabled` until verified email service integration and user-facing redemption are implemented.
+
+Do not assume a `.vercel.app` web URL authorizes transactional email sending or that an invitation acceptance page exists yet. Deployment has **not been executed** through this change.
