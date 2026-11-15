@@ -361,7 +361,7 @@ function renderGallery() {
   $("#galleryGrid").innerHTML = galleryImages
     .map((g, i) => `
       <figure class="gallery-item">
-        <button type="button" class="gallery-open" data-gallery-index="${i}" aria-label="Open photograph ${i + 1} of ${galleryImages.length}: ${g.cap}">
+        <button type="button" class="gallery-open" data-gallery-index="${i}" aria-label="View photograph ${i + 1} of ${galleryImages.length}: ${g.cap}">
           <img src="${g.url}" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
           <span class="gallery-overlay" aria-hidden="true">View photograph <span>↗</span></span>
         </button>
