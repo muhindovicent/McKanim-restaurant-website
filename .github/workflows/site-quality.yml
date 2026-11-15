@@ -17,8 +17,9 @@ jobs:
         run: |
           node --check content/site-content.js
           node --check script.js
-      - name: Structural and trust checks
-        run: node --test tests/site.test.cjs
+          node --check integration/dinesight-client.js
+      - name: Structural, integration contract and trust checks
+        run: node --test tests/*.test.cjs
 
   browser:
     runs-on: ubuntu-latest
