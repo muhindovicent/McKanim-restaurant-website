@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
+const path = require("node:path");
 
 test.beforeEach(async ({ page }) => {
   await page.route(/^https:\/\/(images\.unsplash\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//, route => route.abort());
@@ -156,4 +157,13 @@ test("no fake reviews or booking confirmations are presented", async ({ page }) 
   await expect(page.getByText(/do not invent testimonials/i)).toBeVisible();
   await page.goto("/reservations");
   await expect(page.getByText(/Online reservations are not available yet/i)).toBeVisible();
+});
+
+test("downloadable preview remains navigable from a local HTML file", async ({ page }) => {
+  await page.goto("file://" + path.resolve(__dirname, "../index.html"));
+  await expect(page.locator("#home")).toBeVisible();
+  await page.locator(".hero-cta a[data-route=menu]").click();
+  await expect(page.locator("#menu")).toBeVisible();
+  await expect(page.locator(".menu-card")).toHaveCount(16);
+  await expect(page.locator("#cartSubtotal")).toHaveText("UGX 0");
 });
