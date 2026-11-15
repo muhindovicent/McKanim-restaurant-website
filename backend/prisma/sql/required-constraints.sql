@@ -18,3 +18,6 @@ ALTER TABLE restaurants
   ADD CONSTRAINT restaurant_currency_ugx CHECK (currency = 'UGX');
 ALTER TABLE customer_orders
   ADD CONSTRAINT order_currency_ugx CHECK (currency = 'UGX');
+
+-- Commercial branch limit: a new client starts with one approved restaurant location.
+ALTER TABLE organizations ADD CONSTRAINT branch_limit_positive CHECK ("branchLimit" > 0);
