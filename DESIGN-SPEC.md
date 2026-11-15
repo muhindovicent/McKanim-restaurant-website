@@ -57,7 +57,7 @@ in the first viewport on mobile.
 Concierge/owner conversation checklist — **do not invent any of these**:
 
 1. **Opening hours** — per weekday, holiday hours, last kitchen order time, closed days. (Prototype says *Daily 11:00 AM–11:00 PM* **[VERIFY]**.)
-2. **Price range / actual prices** — all prototype prices are placeholders **[VERIFY]**.
+2. **Price range / actual prices** — the preview displays illustrative integers in Ugandan shillings (UGX), **not official McKanim prices**. Owner must approve every price and tax/service-charge policy **[VERIFY]**.
 3. **Delivery / pickup** — offered? own drivers, app, or third-party (Uber Eats, etc.)? fees, minimum, radius, delivery hours?
 4. **Payment methods** — cards, cash, mobile wallets, split bills, deposits for large parties?
 5. **Signature dishes** — which are genuinely the must-try items? (Used for hero + "Chef's Pick" tags.)
@@ -124,8 +124,8 @@ Dish {
   category:    enum        // signature | burgers | grills | sides | drinks | desserts
   name:        string      // "McKanim Signature Burger"
   description: string      // one appetite line, ~90 chars ideal
-  price:       number      // store in minor units (cents) to avoid float bugs
-  currency:    string      // "USD" / "GBP" etc.  [VERIFY]
+  priceUGX:    integer     // whole Ugandan shillings; do not store fractional float prices
+  currency:    string      // "UGX" (fixed for McKanim's local pilot; owner approval pending)
   dietaryTags: string[]    // vegan | vegetarian | gf | halal | spicy | contains-nuts
   allergens:   string[]    // required in many jurisdictions  [VERIFY policy]
   image:       { src, srcset, alt, width, height }
