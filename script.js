@@ -275,6 +275,7 @@ function initNav() {
   const hamburger = $("#hamburger");
   const navLinks = $("#navLinks");
   const mobileViewport = window.matchMedia("(max-width: 900px)");
+  navLinks.inert = mobileViewport.matches;
   const onScroll = () => navbar.classList.toggle("scrolled", window.scrollY > 40);
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
