@@ -52,3 +52,8 @@ test("menu selection and modal use accessible semantics", () => {
   assert.match(js, /showModal\(\)/);
   assert.match(html, /aria-controls="navLinks"/);
 });
+
+test("category filter operates on collections, not a single element", () => {
+  const collectionUses = js.match(/\$\$\("#menuFilters \\.filter-btn"\)\\.forEach/g) || [];
+  assert.equal(collectionUses.length, 2, "The filter buttons must be iterated with querySelectorAll");
+});
