@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 
 const db = new Client({ connectionString: process.env.DATABASE_URL });
@@ -19,45 +20,55 @@ async function rejectsCode(sql, params, code) {
 
 try {
   await db.query("BEGIN");
-  const restaurant = await db.query(
-    `INSERT INTO restaurants (slug,name,published) VALUES ('ci-test','CI Test Restaurant',false) RETURNING id`
+  const rid = randomUUID();
+  await db.query(
+    `INSERT INTO restaurants (id,slug,name,published,"updatedAt") VALUES ($1,$2,$3,false,now())`,
+    [rid, "ci-test", "CI Test Restaurant"]
   );
-  const rid = restaurant.rows[0].id;
   await rejectsCode(
-    'INSERT INTO restaurants (slug,name,currency) VALUES ($1,$2,$3)',
-    ['other-ci','Wrong Currency','USD'], '23514'
+    'INSERT INTO restaurants (id,slug,name,currency,"updatedAt") VALUES ($1,$2,$3,$4,now())',
+    [randomUUID(), "other-ci", "Wrong Currency", "USD"], "23514"
   );
 
-  const table = await db.query(
-    'INSERT INTO dining_tables ("restaurantId",label,capacity) VALUES ($1,$2,$3) RETURNING id',
-    [rid, 'T1', 2]
-  );
-  const tid = table.rows[0].id;
-  await rejectsCode(
-    'INSERT INTO dining_tables ("restaurantId",label,capacity) VALUES ($1,$2,$3)',
-    [rid, 'T2', 0], '23514'
-  );
-  await db.query('INSERT INTO table_sessions ("tableId",status) VALUES ($1,$2)', [tid,'ACTIVE']);
-  await rejectsCode(
-    'INSERT INTO table_sessions ("tableId",status) VALUES ($1,$2)',
-    [tid,'ACTIVE'], '23505'
-  );
-  const cat = await db.query(
-    'INSERT INTO menu_categories ("restaurantId",name) VALUES ($1,$2) RETURNING id',
-    [rid,'Mains']
+  const tid = randomUUID();
+  await db.query(
+    'INSERT INTO dining_tables (id,"restaurantId",label,capacity) VALUES ($1,$2,$3,$4)',
+    [tid, rid, "T1", 2]
   );
   await rejectsCode(
-    'INSERT INTO menu_items ("restaurantId","categoryId",name,description,"priceUGX") VALUES ($1,$2,$3,$4,$5)',
-    [rid, cat.rows[0].id,'Invalid price','Must reject zero price',0], '23514'
+    'INSERT INTO dining_tables (id,"restaurantId",label,capacity) VALUES ($1,$2,$3,$4)',
+    [randomUUID(), rid, "T2", 0], "23514"
   );
   await db.query(
-    'INSERT INTO menu_items ("restaurantId","categoryId",name,description,"priceUGX") VALUES ($1,$2,$3,$4,$5)',
-    [rid,cat.rows[0].id,'Confirmed sample','CI synthetic food',35000]
+    'INSERT INTO table_sessions (id,"tableId",status) VALUES ($1,$2,$3)',
+    [randomUUID(), tid, "ACTIVE"]
   );
+  await rejectsCode(
+    'INSERT INTO table_sessions (id,"tableId",status) VALUES ($1,$2,$3)',
+    [randomUUID(), tid, "ACTIVE"], "23505"
+  );
+
+  const cid = randomUUID();
+  await db.query(
+    'INSERT INTO menu_categories (id,"restaurantId",name) VALUES ($1,$2,$3)',
+    [cid, rid, "Mains"]
+  );
+  await rejectsCode(
+    'INSERT INTO menu_items (id,"restaurantId","categoryId",name,description,"priceUGX","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,now())',
+    [randomUUID(), rid, cid, "Invalid price", "Must reject zero price", 0], "23514"
+  );
+  await db.query(
+    'INSERT INTO menu_items (id,"restaurantId","categoryId",name,description,"priceUGX","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,now())',
+    [randomUUID(), rid, cid, "Synthetic menu item", "CI synthetic food", 35000]
+  );
+
   const unpublished = await db.query('SELECT count(*)::int AS total FROM menu_items WHERE published = true');
   assert.equal(unpublished.rows[0].total, 0, "menu items must be unpublished by default");
   await db.query("ROLLBACK");
-  console.log("PostgreSQL: price, capacity, currency, session uniqueness and unpublished defaults verified");
+  console.log("PostgreSQL constraints passed: UGX pricing, positive capacity, unique active session and unpublished defaults");
+} catch (error) {
+  await db.query("ROLLBACK");
+  throw error;
 } finally {
   await db.end();
 }
