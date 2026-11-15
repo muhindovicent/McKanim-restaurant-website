@@ -22,6 +22,20 @@ if (restaurant.mode !== "concept-preview" || restaurant.approvals.onlineOrdering
 }
 
 let cart = [];
+try {
+  const stored = JSON.parse(sessionStorage.getItem("mckanim-preview-cart") || "[]");
+  if (Array.isArray(stored)) {
+    cart = stored.flatMap(row => {
+      const item = menuItems.find(m => m.id === row.id);
+      return item && Number.isSafeInteger(row.qty) && row.qty > 0 && row.qty <= 99
+        ? [{ ...item, qty: row.qty }] : [];
+    });
+  }
+} catch { cart = []; }
+function saveCart() {
+  try { sessionStorage.setItem("mckanim-preview-cart", JSON.stringify(cart.map(({ id, qty }) => ({ id, qty })))); }
+  catch { /* Browsers can disable storage; current-page cart still works. */ }
+}
 let currentFilter = "all";
 
 const $ = (sel) => document.querySelector(sel);
@@ -50,6 +64,7 @@ function showToast(msg, type = "ok") {
 
 function renderMenu() {
   const grid = $("#menuGrid");
+  if (!grid) return;
   const list =
     currentFilter === "all"
       ? menuItems
@@ -95,6 +110,7 @@ function initFilters() {
 
 function bindAddButtons() {
   const grid = $("#menuGrid");
+  if (!grid) return;
   grid.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-add]");
     if (!btn) return;
@@ -116,7 +132,8 @@ function addToCart(item) {
     cart.push({ ...item, qty: 1 });
   }
   updateCart();
-  showToast(`${item.name} added to cart`);
+  saveCart();
+  showToast(`${item.name} added to your preview selection`);
 }
 
 function changeQty(id, delta) {
@@ -127,11 +144,13 @@ function changeQty(id, delta) {
     cart = cart.filter((c) => c.id !== id);
   }
   updateCart();
+  saveCart();
 }
 
 function removeFromCart(id) {
   cart = cart.filter((c) => c.id !== id);
   updateCart();
+  saveCart();
   showToast("Item removed", "warn");
 }
 
@@ -275,32 +294,19 @@ function initNav() {
   mobileViewport.addEventListener("change", syncMenu);
   syncMenu();
 
-  // Scrollspy
-  const sections = $$("section[id]");
-  const navMap = new Map();
-  navLinks.querySelectorAll("a").forEach((a) => {
-    const id = a.getAttribute("href");
-    if (id.startsWith("#")) navMap.set(id.slice(1), a);
-  });
+  // Each navigation item opens a real HTML document. Native browser history,
+  // reloads and direct links work without JavaScript or scrollspy.
+  navLinks.querySelectorAll('a[aria-current="page"]').forEach(a => a.classList.add("active"));
 
-  const spy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        navLinks.querySelectorAll(".nav-link").forEach((a) => { a.classList.remove("active"); a.removeAttribute("aria-current"); });
-        const link = navMap.get(entry.target.id);
-        if (link) { link.classList.add("active"); link.setAttribute("aria-current", "location"); }
-      });
-    },
-    { rootMargin: "-45% 0px -50% 0px" }
-  );
-
-  sections.forEach((s) => spy.observe(s));
 }
 
 
 function initReveal() {
   const els = $$(".reveal");
+  if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    els.forEach(el => el.classList.add("visible"));
+    return;
+  }
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -317,7 +323,9 @@ function initReveal() {
 
 
 function renderGallery() {
-  $("#galleryGrid").innerHTML = galleryImages
+  const gallery = $("#galleryGrid");
+  if (!gallery) return;
+  gallery.innerHTML = galleryImages
     .map(
       (g, i) => `
       <figure class="gallery-item">
@@ -360,4 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   updateCart();
+  initGalleryLightbox();
+  initReservationForm();
 });
