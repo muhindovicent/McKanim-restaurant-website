@@ -21,3 +21,12 @@ ALTER TABLE customer_orders
 
 -- Commercial branch limit: a new client starts with one approved restaurant location.
 ALTER TABLE organizations ADD CONSTRAINT branch_limit_positive CHECK ("branchLimit" > 0);
+
+-- Only one currently outstanding (unused/unrevoked) invitation to an email per restaurant.
+-- Re-issue must revoke a previous invitation in the same transaction.
+CREATE UNIQUE INDEX IF NOT EXISTS one_outstanding_owner_invite_per_email
+  ON owner_invitations ("restaurantId", email)
+  WHERE "usedAt" IS NULL AND "revokedAt" IS NULL;
+
+ALTER TABLE owner_invitations
+  ADD CONSTRAINT owner_invitation_expiry_after_creation CHECK ("expiresAt" > "createdAt");
