@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>McKanim Restaurant - Fresh, Flavorful, Memorable</title>
+    <title>McKanim Restaurant | Explore the Menu &amp; Dining Concept</title>
     <meta
       name="description"
-      content="McKanim Restaurant serves fresh, flavorful meals crafted with love. Explore our menu, order online, or reserve a table today."
+      content="Explore the McKanim restaurant concept and sample menu. Verified booking, ordering, and restaurant details will be published when available."
     />
+    <meta name="theme-color" content="#0c2b1d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="McKanim Restaurant | Dining Concept" />
+    <meta property="og:description" content="Explore a sample menu and the McKanim dining concept. Ordering and reservations are not yet available." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,11 +24,12 @@
   </head>
 
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <header class="navbar" id="navbar">
       <div class="container nav-inner">
-        <a href="#home" class="brand" aria-label="McKanim Restaurant home">
-          <span class="brand-mark">M</span>
+        <a href="#home" class="brand" >
+          <span class="brand-mark" aria-hidden="true">M</span>
           <span class="brand-text">McKanim<small>Restaurant</small></span>
         </a>
 
@@ -31,12 +38,11 @@
           <a href="#menu" class="nav-link">Menu</a>
           <a href="#about" class="nav-link">About</a>
           <a href="#gallery" class="nav-link">Gallery</a>
-          <a href="#testimonials" class="nav-link">Reviews</a>
           <a href="#contact" class="nav-link">Contact</a>
         </nav>
 
         <div class="nav-actions">
-          <button class="cart-btn" id="cartBtn" aria-label="Open cart">
+          <button class="cart-btn" id="cartBtn" aria-label="Open menu selection" aria-haspopup="dialog" aria-controls="cartDrawer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
@@ -44,14 +50,15 @@
             </svg>
             <span class="cart-count" id="cartCount">0</span>
           </button>
-          <a href="#reserve" class="btn btn-primary nav-reserve">Reserve a Table</a>
-          <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <a href="#reserve" class="btn btn-primary nav-reserve">Reservations</a>
+          <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
             <span></span><span></span><span></span>
           </button>
         </div>
       </div>
     </header>
 
+    <main id="main-content">
     <section class="hero" id="home">
       <div class="container hero-inner">
         <div class="hero-content reveal">
@@ -62,62 +69,50 @@
             unforgettable taste.
           </h1>
           <p class="hero-sub">
-            From sizzling grills to handcrafted desserts — every plate at
-            McKanim is made fresh, seasoned boldly, and served with a smile.
+            A place for generous flavor and good company. Explore the McKanim
+            dining concept through our sample menu and visual story.
           </p>
           <div class="hero-cta">
-            <a href="#menu" class="btn btn-primary">Order Now</a>
-            <a href="#reserve" class="btn btn-outline">Book a Table</a>
+            <a href="#menu" class="btn btn-primary">Explore the Menu</a>
+            <a href="#reserve" class="btn btn-outline">Reservation Information</a>
           </div>
-          <div class="hero-stats">
-            <div class="stat">
-              <strong>25+</strong><span>Years of Flavor</span>
-            </div>
-            <div class="stat">
-              <strong>60+</strong><span>Signature Dishes</span>
-            </div>
-            <div class="stat">
-              <strong>4.9★</strong><span>12K+ Happy Guests</span>
-            </div>
-          </div>
+          <p class="preview-note">Concept website · Online ordering and reservations are not yet active.</p>
         </div>
         <div class="hero-visual reveal">
-          <div class="hero-img"></div>
-          <div class="floating-card fc-1">
-            <span>🍔</span>
-            <div><strong>Chef's Special</strong><small>Zesty McKanim Burger</small></div>
-          </div>
-          <div class="floating-card fc-2">
-            <span>⭐</span>
-            <div><strong>Gourmet Grill</strong><small>Open 11am – 11pm</small></div>
-          </div>
+          <img
+            class="hero-img"
+            src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=900&amp;q=75"
+            srcset="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=480&amp;q=72 480w, https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=900&amp;q=75 900w, https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1200&amp;q=75 1200w"
+            sizes="(max-width: 900px) 92vw, 530px"
+            alt="Illustrative photograph of a restaurant dining space, not the actual McKanim venue"
+            width="1000" height="1200" fetchpriority="high" decoding="async"
+          />
         </div>
       </div>
     </section>
 
   
-    <section class="strip">
+    <section class="strip" aria-label="Discover McKanim">
       <div class="container strip-inner">
-        <div class="strip-item"><span>🕚</span><p><strong>11:00 AM – 11:00 PM</strong><small>Mon – Sun, all week</small></p></div>
-        <div class="strip-item"><span>📍</span><p><strong>124 Gourmet Avenue</strong><small>Downtown, City Center</small></p></div>
-        <div class="strip-item"><span>🛵</span><p><strong>Free Delivery</strong><small>Orders over $25</small></p></div>
-        <div class="strip-item"><span>🚗</span><p><strong>Free Parking</strong><small>At the door</small></p></div>
+        <div class="strip-item"><p><strong>Explore the Menu</strong><small>Sample dishes and pricing</small></p></div>
+        <div class="strip-item"><p><strong>Our Approach</strong><small>Food made to be enjoyed</small></p></div>
+        <div class="strip-item"><p><strong>Visual Gallery</strong><small>Photography for inspiration</small></p></div>
+        <div class="strip-item"><p><strong>Plan Your Visit</strong><small>Details to be confirmed</small></p></div>
       </div>
     </section>
 
-  
     <section class="section menu" id="menu">
       <div class="container">
         <div class="section-heading reveal">
-          <span class="eyebrow">Our Menu</span>
-          <h2>Dishes you'll crave</h2>
+          <span class="eyebrow">Menu Preview</span>
+          <h2>A taste of what's possible</h2>
           <p>
-            Pick your favorites and add them to your cart. We'll bring the
-            flavor straight to your table — or your doorstep.
+            Explore the dishes in our sample menu. Menu items and prices are
+            illustrative until verified by the restaurant.
           </p>
         </div>
 
-        <div class="menu-filters reveal" id="menuFilters" role="tablist" aria-label="Menu categories">
+        <div class="menu-filters reveal" id="menuFilters" role="group" aria-label="Filter menu by category">
           <button class="filter-btn active" data-filter="all">All</button>
           <button class="filter-btn" data-filter="signature">Signature</button>
           <button class="filter-btn" data-filter="burgers">Burgers</button>
@@ -127,6 +122,7 @@
           <button class="filter-btn" data-filter="desserts">Desserts</button>
         </div>
 
+        <p class="preview-note menu-note">Illustrative prices in Ugandan shillings (UGX), not confirmed McKanim prices. Ordering is unavailable; food photography is illustrative.</p>
         <div class="menu-grid" id="menuGrid" aria-live="polite"></div>
       </div>
     </section>
@@ -135,29 +131,23 @@
     <section class="section about" id="about">
       <div class="container about-inner">
         <div class="about-visual reveal">
-          <div class="about-img-main"></div>
-          <div class="about-img-small"></div>
-          <div class="about-badge">Est.<strong>2001</strong></div>
+          <div class="about-img-main" role="img" aria-label="Illustrative restaurant food presentation"></div>
+          <div class="about-img-small" aria-hidden="true"></div>
         </div>
         <div class="about-content reveal">
           <span class="eyebrow">Our Story</span>
-          <h2>Cooking with heart since day one</h2>
+          <h2>Made for moments around the table</h2>
           <p>
-            McKanim began as a small family kitchen with a simple belief: food
-            should be honest. We source local produce, grind our own spices,
-            and never cut corners — because great taste starts with great
-            ingredients.
+            Our vision for McKanim is simple: a welcoming place where
+            thoughtful cooking, generous flavors, and shared moments
+            take center stage.
           </p>
           <ul class="about-points">
-            <li><span>✦</span> Farm-fresh ingredients delivered daily</li>
-            <li><span>✦</span> Hand-cut, house-made sauces</li>
-            <li><span>✦</span> A kitchen that never uses shortcuts</li>
+            <li>Thoughtful menus and a clear dining experience</li>
+            <li>Food photography that puts the dishes first</li>
+            <li>A warm, understated approach to hospitality</li>
           </ul>
           <div class="about-meta">
-            <div>
-              <strong>Daniel McKanim</strong>
-              <small>Founder &amp; Head Chef</small>
-            </div>
             <a href="#contact" class="btn btn-dark">Visit Us</a>
           </div>
         </div>
@@ -169,167 +159,67 @@
       <div class="container">
         <div class="section-heading reveal">
           <span class="eyebrow">Gallery</span>
-          <h2>A feast for the eyes</h2>
+          <h2>Food, in focus</h2>
+          <p>Illustrative gallery images; original McKanim photography is required before launch.</p>
         </div>
         <div class="gallery-grid reveal" id="galleryGrid"></div>
       </div>
     </section>
 
     
-    <section class="section testimonials" id="testimonials">
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">Reviews</span>
-          <h2>What our guests say</h2>
-        </div>
-        <div class="testimonial-grid reveal">
-          <figure class="testimonial-card">
-            <div class="stars">★★★★★</div>
-            <blockquote>
-              "The McKanim burger is hands-down the best I've had in years.
-              Crispy, juicy, and that house sauce is unreal."
-            </blockquote>
-            <figcaption><strong>Sofia Reyes</strong><small>Food Blogger</small></figcaption>
-          </figure>
-          <figure class="testimonial-card">
-            <div class="stars">★★★★★</div>
-            <blockquote>
-              "Celebrated my anniversary here — beautiful ambiance,
-              attentive staff, and the grilled platter was unforgettable."
-            </blockquote>
-            <figcaption><strong>Marcus &amp; Ada</strong><small>Regular Guests</small></figcaption>
-          </figure>
-          <figure class="testimonial-card">
-            <div class="stars">★★★★★</div>
-            <blockquote>
-              "Ordered delivery for the whole office. Hot, fast, and every box
-              was perfection. McKanim is our Tuesday ritual now."
-            </blockquote>
-            <figcaption><strong>Priya Patel</strong><small>Team Lead, 30+ orders</small></figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    
-    <section class="section reserve" id="reserve">
+        <section class="section reserve" id="reserve">
       <div class="container reserve-inner">
         <div class="reserve-content reveal">
           <span class="eyebrow">Reservations</span>
-          <h2>Book your table today</h2>
-          <p>
-            Planning a dinner, a celebration, or a quiet night out? Reserve
-            ahead and we'll have the table — and the welcome — ready for you.
-          </p>
-          <div class="reserve-details">
-            <p><span>📞</span> +1 (555) 214-9000</p>
-            <p><span>✉️</span> hello@mckanim.com</p>
-            <p><span>🕚</span> Daily · 11:00 AM – 11:00 PM</p>
-          </div>
+          <h2>Plan your visit</h2>
+          <p>Online reservations are not available yet. This preview does not take or confirm bookings.</p>
         </div>
-
-        <form class="reserve-form reveal" id="reserveForm" novalidate>
-          <h3>Make a reservation</h3>
-          <div class="form-row">
-            <div class="form-field">
-              <label for="resName">Full name</label>
-              <input type="text" id="resName" placeholder="e.g. Jordan Smith" required />
-              <span class="error-msg" data-for="resName"></span>
-            </div>
-            <div class="form-field">
-              <label for="resEmail">Email</label>
-              <input type="email" id="resEmail" placeholder="you@example.com" required />
-              <span class="error-msg" data-for="resEmail"></span>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-field">
-              <label for="resDate">Date</label>
-              <input type="date" id="resDate" required />
-              <span class="error-msg" data-for="resDate"></span>
-            </div>
-            <div class="form-field">
-              <label for="resTime">Time</label>
-              <input type="time" id="resTime" required />
-              <span class="error-msg" data-for="resTime"></span>
-            </div>
-          </div>
-          <div class="form-field">
-            <label for="resGuests">Number of guests</label>
-            <select id="resGuests">
-              <option value="1">1 guest</option>
-              <option value="2" selected>2 guests</option>
-              <option value="3">3 guests</option>
-              <option value="4">4 guests</option>
-              <option value="5">5+ guests (call us)</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary btn-block">Reserve Now</button>
-        </form>
+        <div class="reserve-form reserve-notice reveal">
+          <h3>Reservations opening soon</h3>
+          <p>Verified booking contact details and an operational reservation service will be added before launch.</p>
+          <a href="#contact" class="btn btn-primary">Restaurant information</a>
+        </div>
       </div>
     </section>
 
-  
-    <section class="section contact" id="contact">
-      <div class="container contact-inner">
+        <section class="section contact" id="contact">
+      <div class="container contact-inner contact-inner-single">
         <div class="contact-card reveal">
-          <span class="eyebrow">Visit Us</span>
-          <h2>Find McKanim</h2>
-          <p>
-            <strong>Address:</strong> 124 Gourmet Avenue, Downtown, City Center<br />
-            <strong>Phone:</strong> +1 (555) 214-9000<br />
-            <strong>Email:</strong> hello@mckanim.com<br />
-            <strong>Hours:</strong> Daily, 11:00 AM – 11:00 PM
-          </p>
-          <div class="contact-links">
-            <a href="#" aria-label="Instagram">📷</a>
-            <a href="#" aria-label="Facebook">👍</a>
-            <a href="#" aria-label="X">🐦</a>
-            <a href="#" aria-label="TikTok">🎵</a>
-          </div>
-        </div>
-
-        <div class="map-card reveal">
-          <iframe
-            title="McKanim Restaurant location map"
-            src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1372%2C51.5064%2C-0.1172%2C51.5164&amp;layer=mapnik"
-            loading="lazy"
-          ></iframe>
+          <span class="eyebrow">Contact</span>
+          <h2>Stay close to McKanim</h2>
+          <p>We are preparing accurate contact information, location details and operating hours. These will appear here once verified.</p>
+          <p class="preview-note">Please do not rely on this demonstration site for bookings, directions, or confirmed menu pricing.</p>
         </div>
       </div>
     </section>
 
-  
+    </main>
     <footer class="footer">
       <div class="container footer-inner">
         <div class="footer-brand">
           <a href="#home" class="brand">
-            <span class="brand-mark">M</span>
+            <span class="brand-mark" aria-hidden="true">M</span>
             <span class="brand-text">McKanim<small>Restaurant</small></span>
           </a>
           <p>
-            Fresh, flavorful, and made with heart — since 2001. Thank you for
-            making McKanim your table.
+            A considered restaurant experience, presented with clarity.
+            Website information is currently a preview.
           </p>
         </div>
         <div class="footer-col">
-          <h4>Quick Links</h4>
+          <h3>Quick Links</h3>
           <a href="#home">Home</a>
           <a href="#menu">Menu</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </div>
         <div class="footer-col">
-          <h4>Contact</h4>
-          <p>124 Gourmet Avenue, City Center</p>
-          <p>+1 (555) 214-9000</p>
-          <p>hello@mckanim.com</p>
+          <h3>Contact</h3>
+          <p>Verified contact details coming soon.</p>
         </div>
         <div class="footer-col">
-          <h4>Opening Hours</h4>
-          <p>Mon – Sun</p>
-          <p>11:00 AM – 11:00 PM</p>
-          <p class="footer-tag">Kitchen closes 10:30 PM</p>
+          <h3>Opening Hours</h3>
+          <p>Hours pending confirmation.</p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -340,39 +230,35 @@
     </footer>
 
   
-    <div class="cart-overlay" id="cartOverlay"></div>
-    <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart">
+    <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+    <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" inert>
       <div class="cart-header">
-        <h3>Your Order</h3>
-        <button class="cart-close" id="cartClose" aria-label="Close cart">✕</button>
+        <h3 id="cartTitle">Your menu selection</h3>
+        <button class="cart-close" id="cartClose" aria-label="Close cart">&times;</button>
       </div>
       <div class="cart-items" id="cartItems"></div>
       <div class="cart-footer">
         <div class="cart-total">
-          <span>Subtotal</span>
-          <strong id="cartSubtotal">$0.00</strong>
+          <span>Sample subtotal (UGX)</span>
+          <strong id="cartSubtotal">UGX 0</strong>
         </div>
-        <button class="btn btn-primary btn-block" id="checkoutBtn">Checkout</button>
+        <button class="btn btn-primary btn-block" id="checkoutBtn">Ordering information</button>
       </div>
     </aside>
 
     
-    <div class="modal-overlay" id="checkoutModal">
+    <dialog class="order-dialog" id="checkoutModal" aria-labelledby="modalTitle">
       <div class="modal">
-        <div class="modal-emoji">🎉</div>
-        <h3>Order Placed!</h3>
-        <p>
-          Thank you for ordering with McKanim.<br />
-          Your food will arrive in about <strong>35 minutes</strong>.
-        </p>
-        <p class="modal-order" id="modalOrderId"></p>
-        <button class="btn btn-primary btn-block" id="modalClose">Done</button>
+        <h3 id="modalTitle">Online ordering is not active yet</h3>
+        <p>This is a menu preview only. No order has been sent or placed. Ordering will become available after the restaurant system is connected.</p>
+        <button class="btn btn-primary btn-block" id="modalClose" autofocus>Understood</button>
       </div>
-    </div>
+    </dialog>
 
     
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script src="script.js"></script>
+    <script src="content/site-content.js" defer></script>
+    <script src="script.js" defer></script>
   </body>
 </html>

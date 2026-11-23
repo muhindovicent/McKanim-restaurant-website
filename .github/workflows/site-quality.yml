@@ -1,0 +1,64 @@
+name: McKanim site quality
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax validation
+        run: |
+          node --check content/site-content.js
+          node --check script.js
+          node --check integration/dinesight-client.js
+      - name: Structural, integration contract and trust checks
+        run: node --test tests/*.test.cjs
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser test runner
+        run: npm install --no-audit --no-fund --no-save @playwright/test@1.65.1 @axe-core/playwright@4.14.0
+      - name: Install Chromium and dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Browser functional and responsive checks
+        run: npx playwright test --config=playwright.config.cjs
+      - name: Upload screenshots and browser test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mckanim-browser-review
+          path: |
+            screenshots/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package browser-openable concept preview
+        run: |
+          mkdir -p site-preview/content
+          cp index.html styles.css script.js favicon.svg site-preview/
+          cp content/site-content.js site-preview/content/
+      - name: Upload downloadable preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: mckanim-standalone-preview
+          path: site-preview/
+          if-no-files-found: error
+          retention-days: 14
