@@ -50,3 +50,13 @@ test("automated accessibility audit: reservation and reviews information", async
   await page.goto("/reviews");
   await audit(page, "reviews");
 });
+
+test("automated accessibility audit: active reservation-request form", async ({ page }) => {
+  await page.route("https://dinesight-api-staging.onrender.com/api/v1/public/restaurants/mckanim/reservation-requests/config",
+    route => route.fulfill({status:200,contentType:"application/json",
+      headers:{"Access-Control-Allow-Origin":"*"},
+      body:JSON.stringify({acceptingRequests:true,bookingConfirmedAutomatically:false})}));
+  await page.goto("/reservations");
+  await expect(page.locator("#reservationForm")).toBeVisible();
+  await audit(page,"reservation-request form");
+});
