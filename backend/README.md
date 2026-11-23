@@ -59,3 +59,13 @@ DineSight is a product owned by its developer and intended for licensing/subscri
 **Security warning:** Tenant IDs and foreign keys alone do not enforce object-level access controls or block cross-tenant references. Staff membership, organization-scoped authorization, audited support access, cross-branch consistency constraints, and two-tenant security tests must be implemented in later phases. No private staff or ordering endpoints are active now. PostgreSQL RLS is an optional defense in depth that depends on actual hosting privileges and a proper runtime DB role.
 
 See `../docs/architecture/ADR-001-MULTI-TENANT-SAAS.md` and `../docs/commercial/DINESIGHT-LICENSING-MODEL.md`. No subscription billing has been implemented.
+
+## Phase 9B.1 — first customer has one location
+
+The product owner confirmed that the first paying restaurant client will operate a **single location**. New organizations now have `branchLimit = 1` by default. A dedicated **internal** `BranchProvisioningService` obtains a PostgreSQL row lock and verifies branch limits before inserting an unpublished restaurant branch. The service does not expose an HTTP route; a securely authenticated platform-admin onboarding process will be required later.
+
+The `branchLimit` is an entitlement, not a completed subscription billing feature. Organizations remain inactive until approved. Additional branches can be supported by increasing the agreed entitlement later, without cloning the entire application.
+
+**Not yet implemented:** owner accounts, login, authorized staff membership, subscription payment, kitchen, ordering, or full tenant-isolation enforcement. Provisioning through internal calls alone is not customer-ready.
+
+Run `npm run build && npm test`; the new unit tests cover branch limit, disabled publishing, invalid IDs, and future multi-location entitlement.
