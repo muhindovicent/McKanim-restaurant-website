@@ -1,5 +1,5 @@
 /* McKanim preview content. Edit this file to change sample dishes and images.
-   Do not mark details as verified without owner approval. No backend is connected. */
+   Do not mark details as verified without owner approval. Only a gated staging reservation-request API is planned; online orders are not connected. */
 (() => {
   "use strict";
   const menuItems = [
@@ -165,6 +165,8 @@
     name: "McKanim Restaurant",
     currency: "UGX",
     mode: "concept-preview",
+    // Public staging API origin; requests stay closed until staff and venue approval.
+    reservationRequestApiBase: "https://dinesight-api-staging.onrender.com",
     approvals: {
       menu: false,
       businessDetails: false,

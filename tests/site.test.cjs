@@ -17,7 +17,7 @@ test("landmarks, page title and viewport exist", () => {
   assert.match(html, /<html lang="en">/);
   assert.match(html, /<title>McKanim Restaurant/);
   assert.match(html, /name="viewport"/);
-  assert.match(html, /<main id="main-content">/);
+  assert.match(html, /<main id="main-content" tabindex="-1">/);
   assert.match(html, /<nav[^>]*aria-label="Primary"/);
 });
 
@@ -40,7 +40,7 @@ test("demo storefront does not claim a real order or booking", () => {
   assert.doesNotMatch(html, /Order Placed!|Your order has been confirmed/i);
   assert.doesNotMatch(js, /Table reserved for|Order reference:\s*/i);
   assert.match(html, /Online ordering is not active yet/);
-  assert.match(html, /reservations are not available yet/i);
+  assert.match(html, /Confirmed reservations require direct staff approval/i);
   assert.doesNotMatch(html, /Gourmet Avenue|\+1 \(555\)|12K\+ Happy Guests/);
 });
 
@@ -104,4 +104,20 @@ test("prototype cannot claim restaurant owner approval or enable fake transactio
   const ids = contentConfig.menuItems.map(x => x.id);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(contentConfig.menuItems.every(x => typeof x.img === "string" && x.img.startsWith("https://")));
+});
+
+test("all seven primary routes are actual views without scrollspy", () => {
+  const urls = ["/", "/menu", "/about", "/gallery", "/reviews", "/reservations", "/contact"];
+  for (const path of urls) assert.ok(html.includes(`href="${path}"`), "Missing navbar route " + path);
+  assert.equal([...html.matchAll(/data-page="(home|menu|about|gallery|reviews|reserve|contact)"/g)].length, 8);
+  assert.match(js, /history\.pushState/);
+  assert.match(js, /popstate/);
+  assert.doesNotMatch(js, /\/\/ Scrollspy/);
+});
+test("gallery has a real accessible lightbox with controls", () => {
+  assert.match(html, /id="galleryLightbox"/);
+  for (const name of ["lightboxClose", "lightboxPrev", "lightboxNext", "lightboxImage"]) assert.ok(html.includes(`id="${name}"`));
+  assert.match(js, /dialog\.showModal\(\)/);
+  assert.match(js, /ArrowLeft/);
+  assert.match(js, /ArrowRight/);
 });
