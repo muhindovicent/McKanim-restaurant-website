@@ -28,10 +28,35 @@ test("automated accessibility audit: menu selection drawer", async ({ page }) =>
 });
 
 test("automated accessibility audit: ordering information dialog", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/menu");
   await page.locator(".menu-card .add-btn").first().click();
   await page.locator("#cartBtn").click();
   await page.locator("#checkoutBtn").click();
   await expect(page.locator("#checkoutModal")).toBeVisible();
   await audit(page, "ordering information");
+});
+
+test("automated accessibility audit: route-based navigation and gallery lightbox", async ({ page }) => {
+  await page.goto("/gallery");
+  await audit(page, "gallery page");
+  await page.locator(".gallery-open").first().click();
+  await expect(page.locator("#galleryLightbox")).toBeVisible();
+  await audit(page, "gallery lightbox");
+});
+
+test("automated accessibility audit: reservation and reviews information", async ({ page }) => {
+  await page.goto("/reservations");
+  await audit(page, "reservations");
+  await page.goto("/reviews");
+  await audit(page, "reviews");
+});
+
+test("automated accessibility audit: active reservation-request form", async ({ page }) => {
+  await page.route("https://dinesight-api-staging.onrender.com/api/v1/public/restaurants/mckanim/reservation-requests/config",
+    route => route.fulfill({status:200,contentType:"application/json",
+      headers:{"Access-Control-Allow-Origin":"*"},
+      body:JSON.stringify({acceptingRequests:true,bookingConfirmedAutomatically:false})}));
+  await page.goto("/reservations");
+  await expect(page.locator("#reservationForm")).toBeVisible();
+  await audit(page,"reservation-request form");
 });

@@ -34,7 +34,7 @@ This sequence is intended for a developer environment. Do not run development mi
 
 ## Database migration safety
 
-The schema specifies the table and menu/order entities; `prisma/sql/required-constraints.sql` contains additional PostgreSQL checks and a partial unique index that Prisma schema cannot express. The SQL is a **review checklist**, not automatically applied. Integrate it into the initial generated migration before deploying or accepting real orders. Never mark the system commercially ready until these constraints have been verified in a real PostgreSQL instance.
+The initial migration is now **version controlled** in `prisma/migrations/0_init/migration.sql` and includes custom PostgreSQL constraints, with its provider lock in `prisma/migrations/migration_lock.toml`. The backend dependencies are locked in `package-lock.json`. GitHub Actions uses `npm ci`, applies committed migrations with `prisma migrate deploy`, replays the deploy command to verify there are no pending changes, and tests the schema against isolated PostgreSQL. **No persistent staging or production database has been modified by this verification.** Separate database access, backups, tenant authorization and release approval are still required before commercial deployment.
 
 No sample prices, users or default administrator accounts are seeded. An administrator onboarding process and approved McKanim catalog must precede launch.
 
@@ -75,3 +75,11 @@ Run `npm run build && npm test`; the new unit tests cover branch limit, disabled
 `OwnerInvitation` stores a **hash** of each random one-time invitation token, not the token itself. An internal NestJS `OwnerInvitationService` can issue and atomically redeem 24-hour owner invitations, creating a restaurant-scoped OWNER staff record with a salted scrypt password hash. Unit and PostgreSQL tests exercise expiry, replay, revocation and restaurant boundaries. **No real email address is hardcoded or seeded**; the intended recipient must be supplied through secure configuration after a transactional mail provider and approved staging deployment exist.
 
 There is **no authenticated owner login, no email delivery, no public invite endpoint, and no active production owner account yet**. Details: `../docs/security/MCKANIM-OWNER-INVITATION.md`.
+
+## Staging hosting without custom domains
+
+The McKanim static website has been deployed to **Render** at `https://mckanim-dinesight-preview.onrender.com`, and the user verified the homepage and UGX menu. The NestJS API is **not yet deployed**, and a separate Neon staging PostgreSQL database remains to be provisioned and tested. See `../docs/deployment/STAGING-NO-CUSTOM-DOMAIN.md` and the nonsecret `./.env.staging.example`.
+
+Set `NODE_ENV=production` and `APP_ENV=staging` for staging API runtime. The verified Render frontend URL must be configured exactly in both `PUBLIC_WEB_ORIGIN` and `CORS_ORIGINS`. Startup fails closed on missing, untrusted, non-HTTPS or mismatched origins. `INVITATION_DELIVERY_MODE` is locked to `disabled` until verified email service integration and user-facing redemption are implemented.
+
+Do not assume a `.vercel.app` web URL authorizes transactional email sending or that an invitation acceptance page exists yet. Deployment has **not been executed** through this change.

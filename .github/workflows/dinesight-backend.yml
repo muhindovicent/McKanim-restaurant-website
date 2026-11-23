@@ -22,21 +22,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install dependencies (temporary; commit a lock file before release)
-        run: npm install --no-audit --no-fund
+      - name: Install locked backend dependencies
+        run: npm ci --no-audit --no-fund
       - name: Validate Prisma schema
         run: npm run db:validate
       - name: Generate Prisma client and type-check NestJS build
         run: npm run build
       - name: Run foundation tests
         run: npm test
-      - name: Store dependency lockfile for reproducibility review
-        uses: actions/upload-artifact@v4
-        with:
-          name: dinesight-backend-lockfile
-          path: backend/package-lock.json
-          if-no-files-found: error
-          retention-days: 14
+      - name: Confirm committed dependency manifest
+        run: git diff --exit-code -- package-lock.json
 
   postgres-integration:
     runs-on: ubuntu-latest
@@ -66,18 +61,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install and build API
+      - name: Install and build API with lockfile
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm run build
-      - name: Generate reviewable initial PostgreSQL migration
+      - name: Validate checked-in migration exists
         run: |
-          mkdir -p prisma/migrations/0_init
-          npx prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script > prisma/migrations/0_init/migration.sql
-          cat prisma/sql/required-constraints.sql >> prisma/migrations/0_init/migration.sql
-          printf 'provider = "postgresql"\n' > prisma/migrations/migration_lock.toml
-      - name: Apply initial migration to ephemeral PostgreSQL
-        run: npx prisma migrate deploy
+          test -s prisma/migrations/0_init/migration.sql
+          test -s prisma/migrations/migration_lock.toml
+          grep -q 'one_active_session_per_table' prisma/migrations/0_init/migration.sql
+          grep -q 'one_outstanding_owner_invite_per_email' prisma/migrations/0_init/migration.sql
+      - name: Ensure empty database fails the API readiness gate
+        run: |
+          set -eu
+          node dist/main.js > /tmp/dinesight-premigration-check.log 2>&1 &
+          API_PID=$!
+          trap 'kill "$API_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/health/live || true)
+            if [ "$CODE" = "200" ]; then break; fi
+            sleep 1
+          done
+          test "$CODE" = "200"
+          READY_CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/health/ready)
+          test "$READY_CODE" = "503"
+          kill "$API_PID"
+          wait "$API_PID" 2>/dev/null || true
+          trap - EXIT
+      - name: Apply reviewed committed migrations to ephemeral PostgreSQL
+        run: npm run db:migrate:deploy
+      - name: Verify replay has no pending migrations
+        run: npm run db:migrate:deploy
       - name: Verify real PostgreSQL constraints
         run: node scripts/verify-database.mjs
       - name: Test single-location concurrency and tenant scoping
@@ -91,6 +105,8 @@ jobs:
           node scripts/verify-mckanim-pilot.mjs
       - name: Verify secure owner invitations using synthetic email
         run: node scripts/verify-owner-invitations.mjs
+      - name: Verify tenant-scoped reservation requests against PostgreSQL
+        run: node scripts/verify-reservations.mjs
       - name: Validate running HTTP health and unpublished-menu behavior
         run: |
           set -e
@@ -104,7 +120,7 @@ jobs:
           curl -fsS http://127.0.0.1:3001/api/v1/health/live
           CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/public/restaurants/mckanim/menu)
           test "$CODE" = 404
-      - name: Upload initial migration for independent review
+      - name: Upload committed migration used in database verification
         if: always()
         uses: actions/upload-artifact@v4
         with:
