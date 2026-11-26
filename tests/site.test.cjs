@@ -98,13 +98,14 @@ test("sample menu and gallery images preserve image sizing and copy", () => {
   assert.ok(content.galleryImages.every(x => x.url.startsWith("https://images.unsplash.com/")));
 });
 
-test("all seven primary routes are actual views without scrollspy", () => {
-  const urls = ["/", "/menu", "/about", "/gallery", "/reviews", "/reservations", "/contact"];
-  for (const path of urls) assert.ok(html.includes(`href="${path}"`), "Missing navbar route " + path);
-  assert.equal([...html.matchAll(/data-page="(home|menu|about|gallery|reviews|reserve|contact)"/g)].length, 8);
-  assert.match(js, /history\.pushState/);
-  assert.match(js, /popstate/);
-  assert.doesNotMatch(js, /\/\/ Scrollspy/);
+test("all seven primary routes remain direct pages without scrollspy", () => {
+  const routeFiles = ["index.html", "menu/index.html", "about/index.html", "gallery/index.html",
+    "reviews/index.html", "reservations/index.html", "contact/index.html"];
+  for (const file of routeFiles) assert.ok(fs.existsSync(path.join(root, file)), "Missing route page " + file);
+  assert.ok(html.includes('href="./"'), "Homepage navigation must link to the root page");
+  assert.ok(js.includes("function initNav("), "Primary navigation initializer must exist");
+  assert.ok(!js.includes("history.pushState") && !js.includes("popstate"), "Navigation must remain direct-page");
+  assert.ok(!js.includes("// Scrollspy"), "Scrollspy must remain absent");
 });
 test("gallery has a real accessible lightbox with controls", () => {
   assert.match(html, /id="galleryLightbox"/);

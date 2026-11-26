@@ -239,60 +239,6 @@ function closeCheckoutModal() {
   if (dialog.open) dialog.close();
 }
 
-const PAGE_ROUTES = Object.freeze({
-  home: "/", menu: "/menu", about: "/about", gallery: "/gallery",
-  reviews: "/reviews", reserve: "/reservations", contact: "/contact"
-});
-const PAGE_NAMES = Object.freeze({
-  home: "Home", menu: "Menu", about: "About", gallery: "Gallery",
-  reviews: "Reviews", reserve: "Reservations", contact: "Contact"
-});
-const ROUTE_PAGES = Object.fromEntries(Object.entries(PAGE_ROUTES).map(([page, route]) => [route, page]));
-
-function getRoutePage() {
-  if (location.protocol === "file:") {
-    return PAGE_ROUTES[new URLSearchParams(location.search).get("page")] ? new URLSearchParams(location.search).get("page") : "home";
-  }
-  const pathname = location.pathname.replace(/\/$/, "") || "/";
-  return ROUTE_PAGES[pathname] || "home";
-}
-function showPage(page, updateHistory = false) {
-  if (page === "reserve") void refreshReservationAvailability();
-  if (page !== "home") pauseCinematicVideo();
-  else resumeCinematicVideo();
-  if (!(page in PAGE_ROUTES)) return;
-  if (updateHistory) {
-    const url = location.protocol === "file:" ? `?page=${page}` : PAGE_ROUTES[page];
-    history.pushState({ page }, "", url);
-  }
-  document.querySelectorAll("[data-page]").forEach(section => {
-    section.hidden = section.dataset.page !== page;
-  });
-  document.querySelectorAll(".nav-link[data-route]").forEach(link => {
-    const selected = link.dataset.route === page;
-    link.classList.toggle("active", selected);
-    if (selected) link.setAttribute("aria-current", "page");
-    else link.removeAttribute("aria-current");
-  });
-  document.title = `${PAGE_NAMES[page]} | McKanim Restaurant`;
-  document.body.dataset.currentPage = page;
-  closeCart();
-  if ($("#galleryLightbox").open) $("#galleryLightbox").close();
-  // Route changes are immediate. Only the incoming content animates, without
-  // delaying the URL change or scrolling through intermediate sections.
-  document.querySelectorAll(`[data-page="${page}"]`).forEach(section => {
-    section.classList.remove("page-enter");
-    void section.offsetWidth;
-    section.classList.add("page-enter");
-  });
-  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  if (updateHistory) {
-    const heading = document.querySelector(`[data-page="${page}"] h1`);
-    const target = heading || $("#main-content");
-    if (target && !target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
-    target?.focus({ preventScroll: true });
-  }
-}
 function initNav() {
   const navbar = $("#navbar");
   const hamburger = $("#hamburger");
@@ -336,8 +282,6 @@ function initNav() {
     if (mobileViewport.matches && navLinks.classList.contains("open") && !navbar.contains(event.target))
       closeMenu(false);
   });
-  mobileViewport.addEventListener("change", syncMenu);
-  syncMenu();
 
   // Each navigation item opens a real HTML document. Native browser history,
   // reloads and direct links work without JavaScript or scrollspy.
@@ -438,6 +382,70 @@ function initGalleryLightbox() {
   });
 }
 
+let cinemaStarted = false;
+let cinemaManuallyPaused = false;
+
+function pauseCinematicVideo() {
+  const video = $("#heroCinemaVideo");
+  if (video && !video.paused) video.pause();
+}
+
+function resumeCinematicVideo() {
+  const video = $("#heroCinemaVideo");
+  if (!video || !cinemaStarted || cinemaManuallyPaused || document.hidden) return;
+  void video.play().catch(() => pauseCinematicVideo());
+}
+
+function initCinema() {
+  const video = $("#heroCinemaVideo");
+  const toggle = $("#heroMotionToggle");
+  if (!video || !toggle) return;
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (prefersReducedMotion.matches || connection?.saveData) return;
+
+  video.muted = true;
+  video.playsInline = true;
+  video.src = video.dataset.src;
+  cinemaStarted = true;
+
+  video.addEventListener("playing", () => {
+    $("#home")?.classList.add("is-film-playing");
+    toggle.hidden = false;
+    toggle.textContent = "Pause film";
+    toggle.setAttribute("aria-pressed", "true");
+  });
+
+  video.addEventListener("error", () => {
+    toggle.hidden = true;
+    $("#home")?.classList.remove("is-film-playing");
+  });
+
+  toggle.addEventListener("click", () => {
+    if (!video.paused) {
+      cinemaManuallyPaused = true;
+      pauseCinematicVideo();
+      toggle.textContent = "Play film";
+      toggle.setAttribute("aria-pressed", "false");
+    } else {
+      cinemaManuallyPaused = false;
+      toggle.textContent = "Pause film";
+      toggle.setAttribute("aria-pressed", "true");
+      resumeCinematicVideo();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pauseCinematicVideo();
+    else resumeCinematicVideo();
+  });
+
+  void video.play().catch(() => {
+    toggle.hidden = true;
+  });
+}
+
 function initReservationForm() {
   const form = $("#reservationForm");
   if (!form) return;
@@ -481,7 +489,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initLightbox();
   initCinema();
-  initReservations();
   initFilters();
   bindAddButtons();
   bindCartEvents();
