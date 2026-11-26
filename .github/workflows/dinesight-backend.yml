@@ -1,0 +1,130 @@
+name: DineSight Backend Foundation
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/dinesight-backend.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://dinesight_test:demo_password@127.0.0.1:5432/dinesight_test?schema=public
+      CORS_ORIGINS: http://localhost:5500
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked backend dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Validate Prisma schema
+        run: npm run db:validate
+      - name: Generate Prisma client and type-check NestJS build
+        run: npm run build
+      - name: Run foundation tests
+        run: npm test
+      - name: Confirm committed dependency manifest
+        run: git diff --exit-code -- package-lock.json
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: dinesight_test
+          POSTGRES_USER: dinesight_test
+          POSTGRES_PASSWORD: demo_password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U dinesight_test -d dinesight_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      PORT: '3001'
+      DATABASE_URL: postgresql://dinesight_test:demo_password@127.0.0.1:5432/dinesight_test?schema=public
+      CORS_ORIGINS: http://localhost:5500
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install and build API with lockfile
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Validate checked-in migration exists
+        run: |
+          test -s prisma/migrations/0_init/migration.sql
+          test -s prisma/migrations/migration_lock.toml
+          grep -q 'one_active_session_per_table' prisma/migrations/0_init/migration.sql
+          grep -q 'one_outstanding_owner_invite_per_email' prisma/migrations/0_init/migration.sql
+      - name: Ensure empty database fails the API readiness gate
+        run: |
+          set -eu
+          node dist/main.js > /tmp/dinesight-premigration-check.log 2>&1 &
+          API_PID=$!
+          trap 'kill "$API_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/health/live || true)
+            if [ "$CODE" = "200" ]; then break; fi
+            sleep 1
+          done
+          test "$CODE" = "200"
+          READY_CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/health/ready)
+          test "$READY_CODE" = "503"
+          kill "$API_PID"
+          wait "$API_PID" 2>/dev/null || true
+          trap - EXIT
+      - name: Apply reviewed committed migrations to ephemeral PostgreSQL
+        run: npm run db:migrate:deploy
+      - name: Verify replay has no pending migrations
+        run: npm run db:migrate:deploy
+      - name: Verify real PostgreSQL constraints
+        run: node scripts/verify-database.mjs
+      - name: Test single-location concurrency and tenant scoping
+        run: node scripts/verify-branch-provisioning.mjs
+      - name: Bootstrap McKanim pilot in temporary test database
+        env:
+          CONFIRM_MCKANIM_PREVIEW_BOOTSTRAP: 'yes'
+        run: |
+          npm run db:seed
+          npm run db:seed
+          node scripts/verify-mckanim-pilot.mjs
+      - name: Verify secure owner invitations using synthetic email
+        run: node scripts/verify-owner-invitations.mjs
+      - name: Verify tenant-scoped reservation requests against PostgreSQL
+        run: node scripts/verify-reservations.mjs
+      - name: Validate running HTTP health and unpublished-menu behavior
+        run: |
+          set -e
+          node dist/main.js > /tmp/dinesight-api-ci.log 2>&1 &
+          API_PID=$!
+          trap 'kill "$API_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3001/api/v1/health/ready; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3001/api/v1/health/live
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/api/v1/public/restaurants/mckanim/menu)
+          test "$CODE" = 404
+      - name: Upload committed migration used in database verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dinesight-initial-migration-sql
+          path: backend/prisma/migrations/
+          if-no-files-found: ignore
+          retention-days: 14

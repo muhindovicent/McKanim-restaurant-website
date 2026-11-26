@@ -1,0 +1,16 @@
+# Root allowlist: prevent the public static site deployment from publishing
+# source files from the NestJS backend, private docs, test artifacts and CI.
+# Applies when Vercel project Root Directory is the repository root.
+/*
+!/index.html
+!/styles.css
+!/script.js
+!/favicon.svg
+!/content
+!/premium.css
+!/menu
+!/about
+!/gallery
+!/reviews
+!/reservations
+!/contact
