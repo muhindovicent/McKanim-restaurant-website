@@ -1,44 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Allowlist the static frontend, never the NestJS backend or private documents.
-for file in index.html styles.css script.js favicon.svg content/site-content.js; do
-  test -f "$file" || { echo "Missing public asset: $file" >&2; exit 1; }
+
+# Multi-page static Render preview. Only explicit public files are deployed.
+# Does not expose NestJS, API secrets, repository metadata, docs or tests.
+pages=(index.html menu/index.html about/index.html gallery/index.html reviews/index.html reservations/index.html contact/index.html)
+assets=(styles.css premium.css script.js favicon.svg content/site-content.js)
+for file in "${pages[@]}" "${assets[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    printf 'Missing required frontend source: %s\n' "$file" >&2
+    exit 1
+  fi
 done
+
 rm -rf render-public
 mkdir -p render-public/content
-cp styles.css script.js favicon.svg render-public/
+cp styles.css premium.css script.js favicon.svg render-public/
 cp content/site-content.js render-public/content/
-awk '
-  /<head>/ { print; print "    <meta name=\"robots\" content=\"noindex,nofollow,noarchive\" />"; next }
-  { print }
-' index.html > render-public/index.html
+for page in "${pages[@]}"; do
+  mkdir -p "render-public/$(dirname "$page")"
+  # Privacy-first public preview; noindex is advisory, not access protection.
+  awk '
+    /<head>/ { print; print "    <meta name=\"robots\" content=\"noindex,nofollow,noarchive\" />"; next }
+    { print }
+  ' "$page" > "render-public/$page"
+done
 printf 'User-agent: *\nDisallow: /\n' > render-public/robots.txt
 
-# Materialized directory routes ensure direct loading/reloading works on any
-# static host without provider-specific rewrite settings.
-# Insert <base href="/"> ONLY in the hosted copies; index.html remains offline-capable.
-for page in menu about gallery reviews reservations contact; do
-  mkdir -p "render-public/$page"
-  sed 's|<head>|<head><base href="/" />|' render-public/index.html > "render-public/$page/index.html"
-done
-
-expected="$(printf '%s\n' \
-  render-public/about/index.html \
-  render-public/contact/index.html \
-  render-public/content/site-content.js \
-  render-public/favicon.svg \
-  render-public/gallery/index.html \
-  render-public/index.html \
-  render-public/menu/index.html \
-  render-public/reservations/index.html \
-  render-public/reviews/index.html \
-  render-public/robots.txt \
-  render-public/script.js \
-  render-public/styles.css)"
+expected="$(printf '%s\n' render-public/robots.txt; for file in "${pages[@]}" "${assets[@]}"; do printf 'render-public/%s\n' "$file"; done)"
 actual="$(find render-public -type f | LC_ALL=C sort)"
-test "$expected" = "$actual" || { printf 'Unexpected public files:\n%s\n' "$actual" >&2; exit 1; }
-grep -q 'name="robots" content="noindex,nofollow,noarchive"' render-public/index.html
-for page in menu about gallery reviews reservations contact; do
-  grep -q '<base href="/" />' "render-public/$page/index.html"
+if [[ "$(printf '%s\n' "$expected" | LC_ALL=C sort)" != "$actual" ]]; then
+  printf 'Preview includes an unexpected or missing file:\n%s\n' "$actual" >&2
+  exit 1
+fi
+for page in "${pages[@]}"; do
+  grep -q 'name="robots" content="noindex,nofollow,noarchive"' "render-public/$page"
 done
-echo "McKanim static routes and 12 allowlisted files validated."
+printf 'Premium McKanim multi-page staging allowlist verified (%s files).\n' "$(find render-public -type f | wc -l)"

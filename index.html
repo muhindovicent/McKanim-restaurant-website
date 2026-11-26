@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>McKanim Restaurant | Explore the Menu &amp; Dining Concept</title>
+    <title>McKanim Restaurant | A Considered Dining Concept</title>
     <meta
       name="description"
-      content="Explore the McKanim restaurant concept and sample menu. Verified booking, ordering, and restaurant details will be published when available."
+      content="Discover the McKanim Restaurant concept, illustrative food photography, and a sample menu priced in Ugandan shillings."
     />
     <meta name="theme-color" content="#0c2b1d" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="McKanim Restaurant | Dining Concept" />
-    <meta property="og:description" content="Explore a sample menu and the McKanim dining concept. Ordering and reservations are not yet available." />
+    <meta property="og:title" content="McKanim Restaurant | A Considered Dining Concept" />
+    <meta property="og:description" content="Discover the McKanim Restaurant concept, illustrative food photography, and a sample menu priced in Ugandan shillings." />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,26 +21,27 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="premium.css" />
   </head>
 
-  <body>
+  <body data-page="home">
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <header class="navbar" id="navbar">
       <div class="container nav-inner">
-        <a href="/" class="brand" data-route="home">
+        <a href="./" class="brand" >
           <span class="brand-mark" aria-hidden="true">M</span>
           <span class="brand-text">McKanim<small>Restaurant</small></span>
         </a>
 
         <nav class="nav-links" id="navLinks" aria-label="Primary">
-          <a href="/" class="nav-link active" data-route="home" aria-current="page">Home</a>
-          <a href="/menu" class="nav-link" data-route="menu">Menu</a>
-          <a href="/about" class="nav-link" data-route="about">About</a>
-          <a href="/gallery" class="nav-link" data-route="gallery">Gallery</a>
-          <a href="/reviews" class="nav-link" data-route="reviews">Reviews</a>
-          <a href="/reservations" class="nav-link" data-route="reserve">Reservations</a>
-          <a href="/contact" class="nav-link" data-route="contact">Contact</a>
+          <a href="./" class="nav-link active" aria-current="page">Home</a>
+          <a href="menu/" class="nav-link">Menu</a>
+          <a href="about/" class="nav-link">About</a>
+          <a href="gallery/" class="nav-link">Gallery</a>
+          <a href="reviews/" class="nav-link">Reviews</a>
+          <a href="reservations/" class="nav-link">Reservations</a>
+          <a href="contact/" class="nav-link">Contact</a>
         </nav>
 
         <div class="nav-actions">
@@ -52,7 +53,7 @@
             </svg>
             <span class="cart-count" id="cartCount">0</span>
           </button>
-          <a href="/reservations" class="btn btn-primary nav-reserve" data-route="reserve">Plan a Visit</a>
+          <a href="reservations/" class="btn btn-primary nav-reserve">Reservations</a>
           <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
             <span></span><span></span><span></span>
           </button>
@@ -60,17 +61,8 @@
       </div>
     </header>
 
-    <main id="main-content" tabindex="-1">
-    <section class="hero" id="home" data-page="home" aria-labelledby="homeTitle">
-      <div class="hero-cinema" aria-hidden="true">
-        <img class="hero-cinema-poster"
-             src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1600&amp;q=77"
-             alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
-        <video class="hero-cinema-video" id="heroCinemaVideo" muted loop playsinline preload="none"
-               poster="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1600&amp;q=77"
-               data-src="https://videos.pexels.com/video-files/6353432/6353432-hd_720_1280_60fps.mp4"></video>
-      </div>
-      <div class="hero-cinema-shade" aria-hidden="true"></div>
+<main id="main-content" tabindex="-1" class="page-content page-home">
+<section class="hero" id="home">
       <div class="container hero-inner">
         <div class="hero-content reveal">
           <span class="eyebrow">McKanim · A dining experience in the making</span>
@@ -83,12 +75,12 @@
             and the moments that bring people around the table.
           </p>
           <div class="hero-cta">
-            <a href="/menu" class="btn btn-primary" data-route="menu">Explore the Menu</a>
-            <a href="/reservations" class="btn btn-outline" data-route="reserve">Plan a Visit</a>
+            <a href="menu/" class="btn btn-primary">Explore the Menu</a>
+            <a href="reservations/" class="btn btn-outline">Reservation Information</a>
           </div>
           <p class="preview-note">An illustrative concept, not the actual venue. Online orders and confirmed bookings are not active.</p>
         </div>
-        <div class="hero-visual reveal">
+        <div class="hero-visual reveal"><div class="hero-promo hero-promo-top" aria-hidden="true"><span>01 / THE MENU</span><strong>Explore the flavors</strong></div>
           <img
             class="hero-img"
             src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=900&amp;q=75"
@@ -97,18 +89,14 @@
             alt="Illustrative photograph of a restaurant dining space, not the actual McKanim venue"
             width="1000" height="1200" fetchpriority="high" decoding="async"
           />
-          <div class="hero-promo" aria-hidden="true">
-            <span class="hero-promo-icon">M</span>
-            <div><strong>Food, thoughtfully presented.</strong><small>A preview of the McKanim experience</small></div>
-          </div>
+          <div class="hero-promo hero-promo-bottom" aria-hidden="true"><span>02 / THE VISION</span><strong>Made for gathering</strong></div>
         </div>
       </div>
       <button type="button" class="hero-motion-toggle" id="heroMotionToggle"
               aria-pressed="false" hidden>Pause film</button>
       <span class="hero-film-credit">Illustrative culinary film · not filmed at McKanim</span>
     </section>
-
-    <section class="strip" data-page="home" aria-label="Discover McKanim">
+<section class="strip" aria-label="Discover McKanim">
       <div class="container strip-inner">
         <div class="strip-item"><p><strong>Explore the Menu</strong><small>Sample dishes and pricing</small></p></div>
         <div class="strip-item"><p><strong>Our Approach</strong><small>Food made to be enjoyed</small></p></div>
@@ -116,192 +104,18 @@
         <div class="strip-item"><p><strong>Plan Your Visit</strong><small>Details to be confirmed</small></p></div>
       </div>
     </section>
-
-    <section class="section menu" id="menu" data-page="menu" aria-labelledby="menuTitle" hidden>
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">Menu Preview</span>
-          <h1 id="menuTitle">A taste of what's possible</h1>
-          <p>
-            Explore the dishes in our sample menu. Menu items and prices are
-            illustrative until verified by the restaurant.
-          </p>
-        </div>
-
-        <div class="menu-filters reveal" id="menuFilters" role="group" aria-label="Filter menu by category">
-          <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="signature">Signature</button>
-          <button class="filter-btn" data-filter="burgers">Burgers</button>
-          <button class="filter-btn" data-filter="grills">Grills</button>
-          <button class="filter-btn" data-filter="sides">Sides</button>
-          <button class="filter-btn" data-filter="drinks">Drinks</button>
-          <button class="filter-btn" data-filter="desserts">Desserts</button>
-        </div>
-
-        <p class="preview-note menu-note">Illustrative prices in Ugandan shillings (UGX), not confirmed McKanim prices. Ordering is unavailable; food photography is illustrative.</p>
-        <div class="menu-grid" id="menuGrid" aria-live="polite"></div>
-      </div>
-    </section>
-
-  
-    <section class="section about" id="about" data-page="about" aria-labelledby="aboutTitle" hidden>
-      <div class="container about-inner">
-        <div class="about-visual reveal">
-          <div class="about-img-main" role="img" aria-label="Illustrative restaurant food presentation"></div>
-          <div class="about-img-small" aria-hidden="true"></div>
-        </div>
-        <div class="about-content reveal">
-          <span class="eyebrow">Our Story</span>
-          <h1 id="aboutTitle">Made for moments around the table</h1>
-          <p>
-            Our vision for McKanim is simple: a welcoming place where
-            thoughtful cooking, generous flavors, and shared moments
-            take center stage.
-          </p>
-          <ul class="about-points">
-            <li>Thoughtful menus and a clear dining experience</li>
-            <li>Food photography that puts the dishes first</li>
-            <li>A warm, understated approach to hospitality</li>
-          </ul>
-          <div class="about-meta">
-            <a href="/contact" class="btn btn-dark" data-route="contact">Contact Information</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    
-    <section class="section gallery" id="gallery" data-page="gallery" aria-labelledby="galleryTitle" hidden>
-      <div class="container">
-        <div class="section-heading reveal">
-          <span class="eyebrow">Gallery</span>
-          <h1 id="galleryTitle">Food, in focus</h1>
-          <p>Illustrative gallery images; original McKanim photography is required before launch.</p>
-        </div>
-        <div class="gallery-grid reveal" id="galleryGrid"></div>
-      </div>
-    </section>
-
-    
-        <section class="section reviews" id="reviews" data-page="reviews" aria-labelledby="reviewsTitle" hidden>
-      <div class="container reviews-inner">
-        <span class="eyebrow">Guest Experiences</span>
-        <h1 id="reviewsTitle">Good words must be earned.</h1>
-        <p>Verified guest reviews will appear after McKanim begins operating and guests consent to publication. We do not invent testimonials or ratings for a restaurant concept.</p>
-        <a href="/menu" class="btn btn-dark" data-route="menu">Explore our menu preview</a>
-      </div>
-    </section>
-    <section class="section reserve" id="reserve" data-page="reserve" aria-labelledby="reserveTitle" hidden>
-      <div class="container reserve-inner">
-        <div class="reserve-content reveal">
-          <span class="eyebrow">Your table · Your moment</span>
-          <h1 id="reserveTitle">A table for the occasion.</h1>
-          <p>Tell us when you would like to visit. Once reservation requests are enabled,
-            our team will review each request and contact you. Submitting does not reserve a table.</p>
-          <p class="preview-note">Confirmed reservations require direct staff approval.
-            Opening hours and table capacity are awaiting confirmation from the restaurant.</p>
-          <div class="reservation-assurance">
-            <span><strong>01</strong> Send your request</span>
-            <span><strong>02</strong> Staff review it</span>
-            <span><strong>03</strong> Receive confirmation directly</span>
-          </div>
-        </div>
-        <div class="reserve-form reservation-panel reveal">
-          <span class="eyebrow">Reservation requests</span>
-          <h2>Request a table</h2>
-          <p id="reservationAvailability" class="reservation-availability" role="status" aria-live="polite">
-            Checking whether online reservation requests are available…
-          </p>
-          <form id="reservationForm" class="reservation-form-fields" hidden novalidate>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="reservationName">Your name <span aria-hidden="true">*</span></label>
-                <input id="reservationName" name="guestName" autocomplete="name" required
-                       minlength="2" maxlength="120" placeholder="Full name" />
-              </div>
-              <div class="form-field">
-                <label for="reservationPhone">Phone <span aria-hidden="true">*</span></label>
-                <input id="reservationPhone" name="guestPhone" type="tel" autocomplete="tel" required
-                       placeholder="+256 7XX XXX XXX" maxlength="24" />
-              </div>
-            </div>
-            <div class="form-field">
-              <label for="reservationEmail">Email (optional)</label>
-              <input id="reservationEmail" name="guestEmail" type="email" autocomplete="email" maxlength="255" />
-            </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="reservationDate">Preferred date <span aria-hidden="true">*</span></label>
-                <input id="reservationDate" name="visitDate" type="date" required />
-              </div>
-              <div class="form-field">
-                <label for="reservationTime">Preferred time (EAT) <span aria-hidden="true">*</span></label>
-                <input id="reservationTime" name="visitTime" type="time" required />
-              </div>
-            </div>
-            <div class="form-field">
-              <label for="reservationParty">Number of guests <span aria-hidden="true">*</span></label>
-              <select id="reservationParty" name="partySize" required>
-                <option value="">Select party size</option>
-                <option value="1">1 guest</option>
-                <option value="2">2 guests</option>
-                <option value="3">3 guests</option>
-                <option value="4">4 guests</option>
-                <option value="5">5 guests</option>
-                <option value="6">6 guests</option>
-                <option value="7">7 guests</option>
-                <option value="8">8 guests</option>
-                <option value="9">9 guests</option>
-                <option value="10">10 guests</option>
-                <option value="11">11 guests</option>
-                <option value="12">12 guests</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="reservationNotes">Occasion or special requests (optional)</label>
-              <textarea id="reservationNotes" name="notes" rows="3" maxlength="500"
-                placeholder="Share any details that may help our team"></textarea>
-            </div>
-            <div class="reservation-honey" aria-hidden="true">
-              <label for="reservationWebsite">Website</label>
-              <input id="reservationWebsite" name="website" tabindex="-1" autocomplete="off" />
-            </div>
-            <label class="reservation-consent">
-              <input type="checkbox" id="reservationConsent" required />
-              <span>I agree to be contacted about this request. This is not a confirmed booking.</span>
-            </label>
-            <p id="reservationError" class="reservation-error" role="alert" hidden></p>
-            <button type="submit" id="reservationSubmit" class="btn btn-primary btn-block">Send reservation request</button>
-            <p class="reservation-privacy">Details are used to review your request. Do not include sensitive personal information.</p>
-          </form>
-          <div id="reservationReceipt" class="reservation-receipt" role="status" aria-live="polite" hidden>
-            <span class="reservation-receipt-mark" aria-hidden="true">✓</span>
-            <h3>Request received · Pending review</h3>
-            <p>Your request was recorded, but <strong>your table is not confirmed.</strong>
-               Restaurant staff must contact you before you should rely on this booking.</p>
-            <p class="reservation-ref" id="reservationReference"></p>
-            <button type="button" class="btn btn-outline" id="reservationAnother">Start another request</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-        <section class="section contact" id="contact" data-page="contact" aria-labelledby="contactTitle" hidden>
-      <div class="container contact-inner contact-inner-single">
-        <div class="contact-card reveal">
-          <span class="eyebrow">Contact</span>
-          <h1 id="contactTitle">Stay close to McKanim</h1>
-          <p>We are preparing accurate contact information, location details and operating hours. These will appear here once verified.</p>
-          <p class="preview-note">Please do not rely on this demonstration site for bookings, directions, or confirmed menu pricing.</p>
-        </div>
-      </div>
-    </section>
-
-    </main>
+<section class="section home-discover"><div class="container">
+<div class="section-heading"><span class="eyebrow">Explore McKanim</span><h2>The art of gathering</h2><p>Three ways to discover the restaurant concept: our menu, our story, and our visual gallery.</p></div>
+<div class="discover-grid">
+<a class="discover-card reveal" href="menu/"><img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&w=760&q=78" width="540" height="440" loading="lazy" decoding="async" alt="Illustrative gourmet burger"><span>01 / TASTE</span><h3>Explore the menu</h3><p>Sample flavors and UGX prices</p></a>
+<a class="discover-card reveal" href="about/"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&w=760&q=78" width="540" height="440" loading="lazy" decoding="async" alt="Illustrative restaurant dining space"><span>02 / STORY</span><h3>Our approach</h3><p>Thoughtful hospitality, honestly presented</p></a>
+<a class="discover-card reveal" href="gallery/"><img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&w=760&q=78" width="540" height="440" loading="lazy" decoding="async" alt="Illustrative grilled steak presentation"><span>03 / DISCOVER</span><h3>The gallery</h3><p>Food photography for inspiration</p></a>
+</div></div></section>
+</main>
     <footer class="footer">
       <div class="container footer-inner">
         <div class="footer-brand">
-          <a href="/" class="brand" data-route="home">
+          <a href="./" class="brand">
             <span class="brand-mark" aria-hidden="true">M</span>
             <span class="brand-text">McKanim<small>Restaurant</small></span>
           </a>
@@ -312,13 +126,13 @@
         </div>
         <div class="footer-col">
           <h3>Quick Links</h3>
-          <a href="/" data-route="home">Home</a>
-          <a href="/menu" data-route="menu">Menu</a>
-          <a href="/about" data-route="about">About</a>
-          <a href="/gallery" data-route="gallery">Gallery</a>
-          <a href="/reviews" data-route="reviews">Reviews</a>
-          <a href="/reservations" data-route="reserve">Reservations</a>
-          <a href="/contact" data-route="contact">Contact</a>
+          <a href="./">Home</a>
+          <a href="menu/">Menu</a>
+          <a href="about/">About</a>
+          <a href="gallery/">Gallery</a>
+          <a href="reviews/">Reviews</a>
+          <a href="reservations/">Reservations</a>
+          <a href="contact/">Contact</a>
         </div>
         <div class="footer-col">
           <h3>Contact</h3>

@@ -22,6 +22,20 @@ if (restaurant.mode !== "concept-preview" || restaurant.approvals.onlineOrdering
 }
 
 let cart = [];
+try {
+  const stored = JSON.parse(sessionStorage.getItem("mckanim-preview-cart") || "[]");
+  if (Array.isArray(stored)) {
+    cart = stored.flatMap(row => {
+      const item = menuItems.find(m => m.id === row.id);
+      return item && Number.isSafeInteger(row.qty) && row.qty > 0 && row.qty <= 99
+        ? [{ ...item, qty: row.qty }] : [];
+    });
+  }
+} catch { cart = []; }
+function saveCart() {
+  try { sessionStorage.setItem("mckanim-preview-cart", JSON.stringify(cart.map(({ id, qty }) => ({ id, qty })))); }
+  catch { /* Browsers can disable storage; current-page cart still works. */ }
+}
 let currentFilter = "all";
 
 const $ = (sel) => document.querySelector(sel);
@@ -50,6 +64,7 @@ function showToast(msg, type = "ok") {
 
 function renderMenu() {
   const grid = $("#menuGrid");
+  if (!grid) return;
   const list =
     currentFilter === "all"
       ? menuItems
@@ -95,6 +110,7 @@ function initFilters() {
 
 function bindAddButtons() {
   const grid = $("#menuGrid");
+  if (!grid) return;
   grid.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-add]");
     if (!btn) return;
@@ -116,7 +132,8 @@ function addToCart(item) {
     cart.push({ ...item, qty: 1 });
   }
   updateCart();
-  showToast(`${item.name} added to cart`);
+  saveCart();
+  showToast(`${item.name} added to your preview selection`);
 }
 
 function changeQty(id, delta) {
@@ -127,11 +144,13 @@ function changeQty(id, delta) {
     cart = cart.filter((c) => c.id !== id);
   }
   updateCart();
+  saveCart();
 }
 
 function removeFromCart(id) {
   cart = cart.filter((c) => c.id !== id);
   updateCart();
+  saveCart();
   showToast("Item removed", "warn");
 }
 
@@ -192,6 +211,7 @@ function openCart() {
   drawer.classList.add("open");
   document.body.style.overflow = "hidden";
   $("#cartClose").focus();
+  requestAnimationFrame(() => { if (drawer.classList.contains("open")) $("#cartClose").focus(); });
 }
 
 function closeCart() {
@@ -316,45 +336,23 @@ function initNav() {
     if (mobileViewport.matches && navLinks.classList.contains("open") && !navbar.contains(event.target))
       closeMenu(false);
   });
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && navLinks.classList.contains("open")) closeMenu(true);
-    if (event.key === "Tab" && navLinks.classList.contains("open") && mobileViewport.matches) {
-      const links = [...navLinks.querySelectorAll("a[href]")];
-      if (!links.length) return;
-      const first = links[0], last = links[links.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault(); last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault(); first.focus();
-      }
-    }
-  });
+  mobileViewport.addEventListener("change", syncMenu);
+  syncMenu();
 
-  document.addEventListener("click", event => {
-    const anchor = event.target.closest("a[data-route]");
-    if (!anchor || event.defaultPrevented || event.button !== 0 ||
-        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
-        anchor.target === "_blank" || anchor.hasAttribute("download")) return;
-    event.preventDefault();
-    const next = anchor.dataset.route;
-    closeMenu(false);
-    if (next === getRoutePage()) return;
-    showPage(next, true);
-  });
-  window.addEventListener("popstate", () => {
-    closeMenu(false);
-    showPage(getRoutePage());
-    const heading = document.querySelector('[data-page]:not([hidden]) h1');
-    heading?.focus({ preventScroll: true });
-  });
-  const initial = getRoutePage();
-  history.replaceState({ page: initial }, "", location.href);
-  showPage(initial);
+  // Each navigation item opens a real HTML document. Native browser history,
+  // reloads and direct links work without JavaScript or scrollspy.
+  navLinks.querySelectorAll('a[aria-current="page"]').forEach(a => a.classList.add("active"));
+
 }
 
 
 function initReveal() {
   const els = $$(".reveal");
+  if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    els.forEach(el => el.classList.add("visible"));
+    return;
+  }
+  document.documentElement.classList.add("motion-ready");
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -379,241 +377,107 @@ function galleryImageAtWidth(src, width) {
   return image.toString();
 }
 function renderGallery() {
-  $("#galleryGrid").innerHTML = galleryImages
-    .map((g, i) => `
-      <figure class="gallery-item">
-        <button type="button" class="gallery-open" data-gallery-index="${i}" aria-label="View photograph ${i + 1} of ${galleryImages.length}: ${g.cap}">
-          <img src="${galleryImageAtWidth(g.url, 800)}" srcset="${galleryImageAtWidth(g.url, 480)} 480w, ${galleryImageAtWidth(g.url, 800)} 800w, ${galleryImageAtWidth(g.url, 1200)} 1200w" sizes="(max-width: 520px) 92vw, (max-width: 900px) 45vw, 31vw" alt="Illustrative food photo: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
-          <span class="gallery-overlay" aria-hidden="true">View photograph <span>↗</span></span>
-        </button>
-        <figcaption class="gallery-caption">${g.cap}</figcaption>
-      </figure>`)
-    .join("");
+  const grid = $("#galleryGrid");
+  if (!grid) return;
+  grid.innerHTML = galleryImages.map((g, i) => `
+    <figure class="gallery-item">
+      <button type="button" class="gallery-press" data-gallery-index="${i}" aria-label="View ${g.cap} full screen">
+        <img src="${g.url}" alt="Illustrative photograph: ${g.cap}" width="600" height="450" loading="lazy" decoding="async" />
+      </button>
+      <figcaption class="gallery-caption">${g.cap}</figcaption>
+    </figure>`).join("");
 }
 
 let activeGalleryIndex = 0;
-let galleryLauncher = null;
-function largeGalleryImage(src) {
-  const url = new URL(src);
-  if (url.hostname !== "images.unsplash.com") return src;
-  url.searchParams.set("w", "1440");
-  url.searchParams.set("q", "82");
-  return url.toString();
+let lastGalleryTrigger = null;
+function galleryFullsize(image) {
+  const link = new URL(image.url);
+  if (link.hostname === "images.unsplash.com") {
+    link.searchParams.set("w", "1400");
+    link.searchParams.set("q", "84");
+    link.searchParams.set("auto", "format");
+  }
+  return link.href;
 }
-function setGalleryImage(index) {
-  activeGalleryIndex = (index + galleryImages.length) % galleryImages.length;
-  const photo = galleryImages[activeGalleryIndex];
-  $("#lightboxImage").src = largeGalleryImage(photo.url);
-  $("#lightboxImage").alt = "Illustrative food photo: " + photo.cap;
-  $("#lightboxCaption").textContent = photo.cap + " · Illustrative photography";
-  $("#lightboxCount").textContent = `${activeGalleryIndex + 1} of ${galleryImages.length}`;
+function updateLightbox() {
+  const image = galleryImages[activeGalleryIndex];
+  $("#lightboxImage").src = galleryFullsize(image);
+  $("#lightboxImage").alt = "Illustrative photograph: " + image.cap;
+  $("#lightboxCaption").textContent = image.cap;
+  $("#lightboxPosition").textContent = (activeGalleryIndex + 1) + " / " + galleryImages.length;
 }
-function initLightbox() {
+function initGalleryLightbox() {
+  const grid = $("#galleryGrid");
   const dialog = $("#galleryLightbox");
-  $("#galleryGrid").addEventListener("click", event => {
+  if (!grid || !dialog) return;
+  const move = delta => {
+    activeGalleryIndex = (activeGalleryIndex + delta + galleryImages.length) % galleryImages.length;
+    updateLightbox();
+  };
+  grid.addEventListener("click", event => {
     const trigger = event.target.closest("[data-gallery-index]");
     if (!trigger) return;
-    galleryLauncher = trigger;
-    setGalleryImage(Number(trigger.dataset.galleryIndex));
-    if (!dialog.open) dialog.showModal();
+    activeGalleryIndex = Number(trigger.dataset.galleryIndex);
+    if (!Number.isInteger(activeGalleryIndex) || activeGalleryIndex < 0 || activeGalleryIndex >= galleryImages.length) return;
+    lastGalleryTrigger = trigger;
+    updateLightbox();
+    dialog.showModal();
     $("#lightboxClose").focus();
   });
   $("#lightboxClose").addEventListener("click", () => dialog.close());
-  $("#lightboxPrev").addEventListener("click", () => setGalleryImage(activeGalleryIndex - 1));
-  $("#lightboxNext").addEventListener("click", () => setGalleryImage(activeGalleryIndex + 1));
+  $("#lightboxNext").addEventListener("click", () => move(1));
+  $("#lightboxPrevious").addEventListener("click", () => move(-1));
   dialog.addEventListener("keydown", event => {
-    if (event.key === "ArrowLeft") { event.preventDefault(); setGalleryImage(activeGalleryIndex - 1); }
-    if (event.key === "ArrowRight") { event.preventDefault(); setGalleryImage(activeGalleryIndex + 1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); move(1); }
+    if (event.key === "ArrowLeft") { event.preventDefault(); move(-1); }
   });
-  dialog.addEventListener("click", event => {
-    if (event.target === dialog) dialog.close();
-  });
+  dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
   dialog.addEventListener("close", () => {
     $("#lightboxImage").removeAttribute("src");
-    if (galleryLauncher && document.contains(galleryLauncher)) galleryLauncher.focus();
+    lastGalleryTrigger?.focus();
   });
 }
 
-
-
-// Cinematic motion is progressive enhancement. The poster remains functional
-// on slow networks, blocked video CDNs, reduced motion, and offline previews.
-let cinemaStarted = false;
-let cinemaManuallyPaused = false;
-function pauseCinematicVideo() {
-  const video = $("#heroCinemaVideo");
-  if (!video) return;
-  video.pause();
-  $("#home")?.classList.remove("is-film-playing");
-  const btn = $("#heroMotionToggle");
-  if (btn && !btn.hidden) {
-    btn.textContent = "Play film";
-    btn.setAttribute("aria-pressed", "false");
-  }
-}
-function resumeCinematicVideo() {
-  const video = $("#heroCinemaVideo");
-  if (!video || !cinemaStarted || cinemaManuallyPaused || document.hidden ||
-      document.body.dataset.currentPage !== "home") return;
-  void video.play().catch(() => pauseCinematicVideo());
-}
-function initCinema() {
-  const video = $("#heroCinemaVideo");
-  const toggle = $("#heroMotionToggle");
-  if (!video || !toggle) return;
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  if (prefersReducedMotion.matches || connection?.saveData) return;
-  video.muted = true;
-  video.playsInline = true;
-  video.src = video.dataset.src;
-  cinemaStarted = true;
-  video.addEventListener("playing", () => {
-    $("#home")?.classList.add("is-film-playing");
-    toggle.hidden = false;
-    toggle.textContent = "Pause film";
-    toggle.setAttribute("aria-pressed", "true");
-  });
-  video.addEventListener("error", () => {
-    toggle.hidden = true;
-    $("#home")?.classList.remove("is-film-playing");
-  });
-  toggle.addEventListener("click", () => {
-    if (!video.paused) {
-      cinemaManuallyPaused = true;
-      pauseCinematicVideo();
-    } else {
-      cinemaManuallyPaused = false;
-      resumeCinematicVideo();
-    }
-  });
-  document.addEventListener("visibilitychange", () =>
-    document.hidden ? pauseCinematicVideo() : resumeCinematicVideo());
-  void video.play().catch(() => { toggle.hidden = true; });
-}
-
-// A public REQUEST endpoint is not an availability/confirmation service.
-// The backend must approve the organization and restaurant independently.
-const reservationApi = restaurant.reservationRequestApiBase;
-const reservationPath = "/api/v1/public/restaurants/mckanim/reservation-requests";
-let reservationRequestKey = null;
-function configureReservationDateInput() {
-  const field = $("#reservationDate");
-  if (!field) return;
-  const inUganda = new Date(Date.now() + 3 * 3600000);
-  field.min = inUganda.toISOString().slice(0, 10);
-  field.max = new Date(inUganda.getTime() + 60 * 86400000).toISOString().slice(0, 10);
-}
-async function refreshReservationAvailability() {
+function initReservationForm() {
   const form = $("#reservationForm");
-  const state = $("#reservationAvailability");
-  if (!form || !state || !form.hidden || $("#reservationReceipt")?.hidden === false) return;
-  configureReservationDateInput();
-  if (!reservationApi || location.protocol === "file:") {
-    state.textContent = "Online reservation requests are unavailable in this offline preview.";
-    return;
-  }
-  state.textContent = "Checking reservation request availability…";
-  const timeout = AbortSignal.timeout?.(10000);
-  try {
-    const response = await fetch(reservationApi + reservationPath + "/config", {
-      headers: { Accept: "application/json" }, cache: "no-store",
-      ...(timeout ? { signal: timeout } : {}),
-    });
-    if (!response.ok) throw new Error("Unavailable");
-    const config = await response.json();
-    if (config.acceptingRequests === true && config.bookingConfirmedAutomatically === false) {
-      form.hidden = false;
-      state.textContent = "Requests are open for staff review. Submission does not guarantee a table.";
-    } else {
-      state.textContent = "Online reservation requests are not active yet. No booking can be confirmed here.";
-    }
-  } catch {
-    state.textContent = "Online requests cannot be reached right now. Please try again later; no booking was made.";
-  }
-}
-function showReservationError(message) {
-  const error = $("#reservationError");
-  error.textContent = message;
-  error.hidden = false;
-  error.focus?.({ preventScroll: true });
-}
-function initReservations() {
-  const form = $("#reservationForm");
-  const submit = $("#reservationSubmit");
-  const receipt = $("#reservationReceipt");
   if (!form) return;
-  configureReservationDateInput();
-  form.addEventListener("submit", async event => {
-    event.preventDefault();
-    $("#reservationError").hidden = true;
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
-    if (!$("#reservationConsent").checked) {
-      showReservationError("Please agree to be contacted about this request.");
-      return;
-    }
-    if (!reservationRequestKey) {
-      if (!crypto.randomUUID) {
-        showReservationError("Secure requests are unavailable in this browser.");
-        return;
-      }
-      reservationRequestKey = crypto.randomUUID();
-    }
-    const body = {
-      idempotencyKey: reservationRequestKey,
-      guestName: $("#reservationName").value.trim(),
-      guestPhone: $("#reservationPhone").value.trim(),
-      guestEmail: $("#reservationEmail").value.trim() || undefined,
-      visitDate: $("#reservationDate").value,
-      visitTime: $("#reservationTime").value,
-      partySize: Number($("#reservationParty").value),
-      notes: $("#reservationNotes").value.trim() || undefined,
-      website: $("#reservationWebsite").value,
-    };
-    submit.disabled = true;
-    submit.textContent = "Sending request…";
-    try {
-      const timeout = AbortSignal.timeout?.(12000);
-      const response = await fetch(reservationApi + reservationPath, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(body),
-        ...(timeout ? { signal: timeout } : {}),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (response.status !== 202 || result.status !== "PENDING_REVIEW" || !result.reference) {
-        if (response.status === 429) throw new Error("Too many requests. Please try again later.");
-        throw new Error("We could not record your request. Please retry; no booking is confirmed.");
-      }
-      form.hidden = true;
-      receipt.hidden = false;
-      $("#reservationReference").textContent = "Request reference: " + result.reference;
-      receipt.querySelector("h3")?.focus?.();
-      reservationRequestKey = null;
-      form.reset();
-    } catch (error) {
-      showReservationError(error?.message || "Unable to submit your request. Please retry.");
-    } finally {
-      submit.disabled = false;
-      submit.textContent = "Send reservation request";
-    }
+  const date = $("#visitDate");
+  const now = new Date();
+  const localISODate = [now.getFullYear(), String(now.getMonth() + 1).padStart(2,"0"), String(now.getDate()).padStart(2,"0")].join("-");
+  date.min = localISODate;
+  const fields = [...form.querySelectorAll("input, select")];
+  function validate(field) {
+    const message = field.validity.valid ? "" : field.validationMessage;
+    if (message) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+    const error = $("#" + field.id + "Error");
+    if (error) error.textContent = message;
+    return !message;
+  }
+  fields.forEach(field => {
+    field.addEventListener("input", () => { if (field.hasAttribute("aria-invalid")) validate(field); });
+    field.addEventListener("change", () => { if (field.hasAttribute("aria-invalid")) validate(field); });
   });
-  $("#reservationAnother").addEventListener("click", () => {
-    receipt.hidden = true;
-    form.hidden = false;
-    $("#reservationError").hidden = true;
-    $("#reservationName").focus();
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    const invalid = fields.filter(field => !validate(field));
+    const status = $("#reservationStatus");
+    if (invalid.length) {
+      status.textContent = "Please correct the highlighted details. No booking request has been sent.";
+      status.className = "form-status warn";
+      invalid[0].focus();
+      return;
+    }
+    status.textContent = "Your details look complete, but this was a local preview check. No reservation was sent or confirmed.";
+    status.className = "form-status ok";
   });
 }
-
 document.addEventListener("DOMContentLoaded", () => {
   $("#year").textContent = new Date().getFullYear();
 
   renderMenu();
   renderGallery();
+  initReveal();
 
   initLightbox();
   initCinema();
@@ -643,4 +507,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   updateCart();
+  initGalleryLightbox();
+  initReservationForm();
 });

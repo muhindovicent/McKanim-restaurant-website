@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Gallery | McKanim Restaurant</title>
+    <meta
+      name="description"
+      content="Browse a responsive collection of illustrative restaurant food photography with a full-screen image viewer."
+    />
+    <meta name="theme-color" content="#0c2b1d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Food Gallery | McKanim Restaurant" />
+    <meta property="og:description" content="Browse a responsive collection of illustrative restaurant food photography with a full-screen image viewer." />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../premium.css" />
+  </head>
+
+  <body data-page="gallery">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header class="navbar" id="navbar">
+      <div class="container nav-inner">
+        <a href="../" class="brand" >
+          <span class="brand-mark" aria-hidden="true">M</span>
+          <span class="brand-text">McKanim<small>Restaurant</small></span>
+        </a>
+
+        <nav class="nav-links" id="navLinks" aria-label="Primary">
+          <a href=".././" class="nav-link">Home</a>
+          <a href="../menu/" class="nav-link">Menu</a>
+          <a href="../about/" class="nav-link">About</a>
+          <a href="../gallery/" class="nav-link active" aria-current="page">Gallery</a>
+          <a href="../reviews/" class="nav-link">Reviews</a>
+          <a href="../reservations/" class="nav-link">Reservations</a>
+          <a href="../contact/" class="nav-link">Contact</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="cart-btn" id="cartBtn" aria-label="Open menu selection" aria-haspopup="dialog" aria-controls="cartDrawer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+            </svg>
+            <span class="cart-count" id="cartCount">0</span>
+          </button>
+          <a href="../reservations/" class="btn btn-primary nav-reserve">Reservations</a>
+          <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+<main id="main-content" tabindex="-1" class="page-content page-gallery">
+<section class="page-intro"><div class="container page-intro-inner"><span class="eyebrow">McKanim / gallery</span><h1>Food, in focus</h1><p>Illustrative food photography. Authentic restaurant images will replace these before launch.</p></div></section>
+<section class="section gallery" id="gallery">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Gallery</span>
+          <h2>Food, in focus</h2>
+          <p>Illustrative gallery images; original McKanim photography is required before launch.</p>
+        </div>
+        <div class="gallery-grid reveal" id="galleryGrid"></div>
+      </div>
+    </section>
+<dialog class="gallery-lightbox" id="galleryLightbox" aria-labelledby="lightboxCaption">
+<div class="lightbox-inner"><button id="lightboxClose" class="lightbox-close" type="button" aria-label="Close full-screen photograph">&times;</button>
+<div class="lightbox-stage"><button id="lightboxPrevious" class="lightbox-arrow" type="button" aria-label="Previous photograph">&#8592;</button>
+<img id="lightboxImage" src="" alt="" width="1400" height="1000" decoding="async">
+<button id="lightboxNext" class="lightbox-arrow" type="button" aria-label="Next photograph">&#8594;</button></div>
+<div class="lightbox-meta"><p id="lightboxCaption"></p><span id="lightboxPosition" aria-live="polite"></span></div></div></dialog>
+</main>
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <a href="../" class="brand">
+            <span class="brand-mark" aria-hidden="true">M</span>
+            <span class="brand-text">McKanim<small>Restaurant</small></span>
+          </a>
+          <p>
+            A considered restaurant experience, presented with clarity.
+            Website information is currently a preview.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h3>Quick Links</h3>
+          <a href="../">Home</a>
+          <a href="../menu/">Menu</a>
+          <a href="../about/">About</a>
+          <a href="../gallery/">Gallery</a>
+          <a href="../reviews/">Reviews</a>
+          <a href="../reservations/">Reservations</a>
+          <a href="../contact/">Contact</a>
+        </div>
+        <div class="footer-col">
+          <h3>Contact</h3>
+          <p>Verified contact details coming soon.</p>
+        </div>
+        <div class="footer-col">
+          <h3>Opening Hours</h3>
+          <p>Hours pending confirmation.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="container">
+          <p>© <span id="year"></span> McKanim Restaurant. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+  
+    <div class="cart-overlay" id="cartOverlay" aria-hidden="true"></div>
+    <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" inert>
+      <div class="cart-header">
+        <h3 id="cartTitle">Your menu selection</h3>
+        <button class="cart-close" id="cartClose" aria-label="Close cart">&times;</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-footer">
+        <div class="cart-total">
+          <span>Sample subtotal (UGX)</span>
+          <strong id="cartSubtotal">UGX 0</strong>
+        </div>
+        <button class="btn btn-primary btn-block" id="checkoutBtn">Ordering information</button>
+      </div>
+    </aside>
+
+    
+    <dialog class="order-dialog" id="checkoutModal" aria-labelledby="modalTitle">
+      <div class="modal">
+        <h3 id="modalTitle">Online ordering is not active yet</h3>
+        <p>This is a menu preview only. No order has been sent or placed. Ordering will become available after the restaurant system is connected.</p>
+        <button class="btn btn-primary btn-block" id="modalClose" autofocus>Understood</button>
+      </div>
+    </dialog>
+
+    
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="../content/site-content.js" defer></script>
+    <script src="../script.js" defer></script>
+  </body>
+</html>
