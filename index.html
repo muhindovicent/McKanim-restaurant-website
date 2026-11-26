@@ -62,7 +62,16 @@
     </header>
 
 <main id="main-content" tabindex="-1" class="page-content page-home">
-<section class="hero" id="home">
+<section class="hero" id="home" aria-labelledby="homeTitle">
+      <div class="hero-cinema" aria-hidden="true">
+        <img class="hero-cinema-poster"
+             src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1600&amp;q=77"
+             alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
+        <video class="hero-cinema-video" id="heroCinemaVideo" muted loop playsinline preload="none"
+               poster="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&amp;w=1600&amp;q=77"
+               data-src="https://videos.pexels.com/video-files/6353432/6353432-hd_720_1280_60fps.mp4"></video>
+      </div>
+      <div class="hero-cinema-shade" aria-hidden="true"></div>
       <div class="container hero-inner">
         <div class="hero-content reveal">
           <span class="eyebrow">McKanim · A dining experience in the making</span>
