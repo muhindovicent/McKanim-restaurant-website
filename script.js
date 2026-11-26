@@ -239,12 +239,66 @@ function closeCheckoutModal() {
   if (dialog.open) dialog.close();
 }
 
+const PAGE_ROUTES = Object.freeze({
+  home: "/", menu: "/menu", about: "/about", gallery: "/gallery",
+  reviews: "/reviews", reserve: "/reservations", contact: "/contact"
+});
+const PAGE_NAMES = Object.freeze({
+  home: "Home", menu: "Menu", about: "About", gallery: "Gallery",
+  reviews: "Reviews", reserve: "Reservations", contact: "Contact"
+});
+const ROUTE_PAGES = Object.fromEntries(Object.entries(PAGE_ROUTES).map(([page, route]) => [route, page]));
+
+function getRoutePage() {
+  if (location.protocol === "file:") {
+    return PAGE_ROUTES[new URLSearchParams(location.search).get("page")] ? new URLSearchParams(location.search).get("page") : "home";
+  }
+  const pathname = location.pathname.replace(/\/$/, "") || "/";
+  return ROUTE_PAGES[pathname] || "home";
+}
+function showPage(page, updateHistory = false) {
+  if (page === "reserve") void refreshReservationAvailability();
+  if (page !== "home") pauseCinematicVideo();
+  else resumeCinematicVideo();
+  if (!(page in PAGE_ROUTES)) return;
+  if (updateHistory) {
+    const url = location.protocol === "file:" ? `?page=${page}` : PAGE_ROUTES[page];
+    history.pushState({ page }, "", url);
+  }
+  document.querySelectorAll("[data-page]").forEach(section => {
+    section.hidden = section.dataset.page !== page;
+  });
+  document.querySelectorAll(".nav-link[data-route]").forEach(link => {
+    const selected = link.dataset.route === page;
+    link.classList.toggle("active", selected);
+    if (selected) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  document.title = `${PAGE_NAMES[page]} | McKanim Restaurant`;
+  document.body.dataset.currentPage = page;
+  closeCart();
+  if ($("#galleryLightbox").open) $("#galleryLightbox").close();
+  // Route changes are immediate. Only the incoming content animates, without
+  // delaying the URL change or scrolling through intermediate sections.
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(section => {
+    section.classList.remove("page-enter");
+    void section.offsetWidth;
+    section.classList.add("page-enter");
+  });
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  if (updateHistory) {
+    const heading = document.querySelector(`[data-page="${page}"] h1`);
+    const target = heading || $("#main-content");
+    if (target && !target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+    target?.focus({ preventScroll: true });
+  }
+}
 function initNav() {
   const navbar = $("#navbar");
   const hamburger = $("#hamburger");
   const navLinks = $("#navLinks");
   const mobileViewport = window.matchMedia("(max-width: 900px)");
-
+  navLinks.inert = mobileViewport.matches;
   const onScroll = () => navbar.classList.toggle("scrolled", window.scrollY > 40);
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
@@ -259,19 +313,9 @@ function initNav() {
     if (restoreFocus && wasOpen) hamburger.focus();
   }
 
-  function syncMenu() {
-    if (!mobileViewport.matches) {
-      closeMenu(false);
-      navLinks.inert = false;
-    } else if (!navLinks.classList.contains("open")) {
-      navLinks.inert = true;
-    }
-  }
-
   hamburger.addEventListener("click", () => {
-    if (navLinks.classList.contains("open")) {
-      closeMenu(true);
-    } else {
+    if (navLinks.classList.contains("open")) closeMenu(true);
+    else {
       navLinks.inert = false;
       navLinks.classList.add("open");
       hamburger.classList.add("open");
@@ -280,17 +324,17 @@ function initNav() {
       navLinks.querySelector("a")?.focus();
     }
   });
-
-  navLinks.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => closeMenu(false))
-  );
-
-  document.addEventListener("pointerdown", (e) => {
-    if (mobileViewport.matches && navLinks.classList.contains("open")
-      && !navbar.contains(e.target)) closeMenu(false);
+  mobileViewport.addEventListener("change", () => {
+    if (!mobileViewport.matches) {
+      closeMenu(false);
+      navLinks.inert = false;
+    } else if (!navLinks.classList.contains("open")) {
+      navLinks.inert = true;
+    }
   });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && navLinks.classList.contains("open")) closeMenu(true);
+  document.addEventListener("pointerdown", event => {
+    if (mobileViewport.matches && navLinks.classList.contains("open") && !navbar.contains(event.target))
+      closeMenu(false);
   });
   mobileViewport.addEventListener("change", syncMenu);
   syncMenu();
@@ -324,6 +368,14 @@ function initReveal() {
 }
 
 
+function galleryImageAtWidth(src, width) {
+  const image = new URL(src);
+  if (image.hostname !== "images.unsplash.com") return src;
+  image.searchParams.set("w", String(width));
+  image.searchParams.set("q", "78");
+  image.searchParams.set("auto", "format");
+  return image.toString();
+}
 function renderGallery() {
   const grid = $("#galleryGrid");
   if (!grid) return;
@@ -427,6 +479,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGallery();
   initReveal();
 
+  initLightbox();
+  initCinema();
+  initReservations();
   initFilters();
   bindAddButtons();
   bindCartEvents();

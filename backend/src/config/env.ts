@@ -11,6 +11,8 @@ const schema = z.object({
   // Email sending is intentionally unsupported until a verified provider,
   // authenticated invitation flow and safe URL handler are available.
   INVITATION_DELIVERY_MODE: z.literal("disabled").default("disabled"),
+  // Explicit double-gate with per-restaurant reservationRequestsEnabled flag.
+  RESERVATION_REQUESTS_MODE: z.enum(["disabled","enabled"]).default("disabled"),
 });
 
 export function validateEnvironment(raw: Record<string, unknown>) {
