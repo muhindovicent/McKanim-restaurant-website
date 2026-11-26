@@ -438,6 +438,70 @@ function initGalleryLightbox() {
   });
 }
 
+let cinemaStarted = false;
+let cinemaManuallyPaused = false;
+
+function pauseCinematicVideo() {
+  const video = $("#heroCinemaVideo");
+  if (video && !video.paused) video.pause();
+}
+
+function resumeCinematicVideo() {
+  const video = $("#heroCinemaVideo");
+  if (!video || !cinemaStarted || cinemaManuallyPaused || document.hidden) return;
+  void video.play().catch(() => pauseCinematicVideo());
+}
+
+function initCinema() {
+  const video = $("#heroCinemaVideo");
+  const toggle = $("#heroMotionToggle");
+  if (!video || !toggle) return;
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (prefersReducedMotion.matches || connection?.saveData) return;
+
+  video.muted = true;
+  video.playsInline = true;
+  video.src = video.dataset.src;
+  cinemaStarted = true;
+
+  video.addEventListener("playing", () => {
+    $("#home")?.classList.add("is-film-playing");
+    toggle.hidden = false;
+    toggle.textContent = "Pause film";
+    toggle.setAttribute("aria-pressed", "true");
+  });
+
+  video.addEventListener("error", () => {
+    toggle.hidden = true;
+    $("#home")?.classList.remove("is-film-playing");
+  });
+
+  toggle.addEventListener("click", () => {
+    if (!video.paused) {
+      cinemaManuallyPaused = true;
+      pauseCinematicVideo();
+      toggle.textContent = "Play film";
+      toggle.setAttribute("aria-pressed", "false");
+    } else {
+      cinemaManuallyPaused = false;
+      toggle.textContent = "Pause film";
+      toggle.setAttribute("aria-pressed", "true");
+      resumeCinematicVideo();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) pauseCinematicVideo();
+    else resumeCinematicVideo();
+  });
+
+  void video.play().catch(() => {
+    toggle.hidden = true;
+  });
+}
+
 function initReservationForm() {
   const form = $("#reservationForm");
   if (!form) return;
@@ -481,7 +545,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initLightbox();
   initCinema();
-  initReservations();
   initFilters();
   bindAddButtons();
   bindCartEvents();
